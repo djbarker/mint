@@ -245,23 +245,29 @@ export class Interactive {
     registerDraggable(hit_test: (p: Point2D) => boolean, on_drag: (p: Point2D) => void) {
         const canvas = this.view.ctx.canvas;
 
-        let is_dragging = false;
+        let out = {
+            is_dragging: false,
+            is_hovered: false,
+        }
 
         canvas.addEventListener("mousedown", this._toHandler((m) => {
             if (hit_test(m)) {
-                is_dragging = true;
+                out.is_dragging = true;
             }
         }))
 
         canvas.addEventListener("mouseup", (e) => {
-            is_dragging = false;
+            out.is_dragging = false;
         });
 
         canvas.addEventListener("mousemove", this._toHandler((m) => {
-            if (is_dragging) {
+            out.is_hovered = hit_test(m);
+            if (out.is_dragging) {
                 on_drag(m);
             }
         }));
+
+        return out;
     }
 
     addOnMouseDown(func: (mouseXY: Point2D) => void) {
