@@ -88,12 +88,16 @@ export function to_canvas_space_point(view: ViewPort2D, point: Point2D): Point2D
     let frac = div_points(sub_points(point, view.lower), sub_points(view.upper, view.lower));
     let size = { x: view.ctx.canvas.width, y: view.ctx.canvas.height };
     let pixels = mul_points(frac, size);
+    pixels = {
+        x: pixels.x,
+        y: size.y - pixels.y,
+    }
     return pixels;
 }
 
 // NOTE: Assumes the canvas's aspect ratio matches the viewport's.
 export function to_canvas_space_dist(view: ViewPort2D, dist: number): number {
-    const frac = dist / (view.upper.x - view.lower.y);
+    const frac = dist / (view.upper.x - view.lower.x);
     const size = view.ctx.canvas.width;
     const pixels = frac * size;
     return pixels;
@@ -101,6 +105,10 @@ export function to_canvas_space_dist(view: ViewPort2D, dist: number): number {
 
 export function to_data_space_point(view: ViewPort2D, pixels: Point2D): Point2D {
     const size = { x: view.ctx.canvas.width, y: view.ctx.canvas.height };
+    pixels = {
+        x: pixels.x,
+        y: size.y - pixels.y,
+    }
     const frac = div_points(pixels, size);
     const point = add_points(view.lower, mul_points(frac, sub_points(view.upper, view.lower)));
     return point;
