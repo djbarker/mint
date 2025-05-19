@@ -19,14 +19,14 @@ let circ_b = wrap({ center: { x: 1.0, y: -2.0 }, radius: 0.25 });
 let circ_c = wrap({ center: { x: -1.0, y: -2.0 }, radius: 0.25 });
 let circ_d = wrap({ center: { x: 0, y: 0 }, radius: 1.0 });
 
-circ_a = circ_a.with_recalc(
+circ_a.set_recalc(
     [circ_b],
     (self, fired) => {
         self.value.center = { x: circ_b.value.center.x, y: -circ_b.value.center.y };
     }
 );
 
-circ_b = circ_b.with_recalc(
+circ_b.set_recalc(
     [circ_a, circ_c],
     (self, fired) => {
         if (fired == circ_a) {
@@ -38,13 +38,13 @@ circ_b = circ_b.with_recalc(
     }
 )
 
-circ_c = circ_c.with_recalc([circ_b],
+circ_c.set_recalc([circ_b],
     (self, fired) => {
         self.value.center = rotate_cw_deg(circ_b.value.center, +45.0);
     }
 )
 
-circ_d = circ_d.with_recalc([circ_a], (self, fired) => {
+circ_d.set_recalc([circ_a], (self, fired) => {
     self.value.radius = magnitude(circ_a.value.center);
 })
 

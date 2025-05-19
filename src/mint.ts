@@ -253,14 +253,14 @@ export class Value<T> {
         })
     }
 
-    with_recalc(inputs: [Value<any>], recalc: (self: Value<T>) => void): Value<T> {
-        let out = new Value<T>(this.value, this.deps, recalc);
+    set_recalc(inputs: [Value<any>], recalc: (self: Value<T>) => void): Value<T> {
+        this._recalc = recalc;
 
         inputs.forEach(input => {
-            input.deps.push(out);
+            input.deps.push(this);
         });
 
-        return out;
+        return this;
     }
 }
 
