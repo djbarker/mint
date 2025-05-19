@@ -78,10 +78,29 @@ export interface LineSegment2D {
 // }
 
 // Convert our data space into canvas locations.
-export interface ViewPort2D {
+export class ViewPort2D {
+    ctx: CanvasRenderingContext2D;
+    lower: Point2D;
+    upper: Point2D;
+
+    constructor(
     ctx: CanvasRenderingContext2D,
     lower: Point2D,
-    upper: Point2D,
+        upper: Point2D) {
+        this.ctx = ctx;
+        this.lower = lower;
+        this.upper = upper;
+    }
+
+    // The width in data-space units.
+    get width(): number {
+        return this.upper.x - this.lower.x;
+    }
+
+    // The height in data-space units.
+    get height(): number {
+        return this.upper.y - this.lower.y;
+    }
 }
 
 export function to_canvas_space_point(view: ViewPort2D, point: Point2D): Point2D {
