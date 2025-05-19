@@ -385,6 +385,23 @@ export function draw_right_angle(view: ViewPort2D, point: Point2D, size: number,
     style_default(view.ctx);
 }
 
+export type Offset = "++" | ".+" | "-+" | "+." | ".." | "-." | "+-" | ".-" | "--";
+
+export function draw_text(view: ViewPort2D, text: string, xy: Point2D) {
+    xy = to_canvas_space_point(view, xy);
+
+    view.ctx.font = "16px sans-serif";
+    view.ctx.textAlign = "center";
+    view.ctx.textBaseline = "middle";
+
+    view.ctx.strokeStyle = "white";
+    view.ctx.lineWidth = 3;
+    view.ctx.strokeText(text, xy.x, xy.y);
+
+    view.ctx.fillStyle = "black";
+    view.ctx.fillText(text, xy.x, xy.y);
+}
+
 export class Draggable {
     z: number;
 
@@ -531,3 +548,4 @@ export function wrap<T>(value: T): Value<T> {
 // export function link(value_a: Value<any>, value_b: Value<any>, a_from_b: () => void, b_from_a: () => void) {
 //     value_a
 // }
+

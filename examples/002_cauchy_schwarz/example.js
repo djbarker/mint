@@ -1,6 +1,6 @@
 // @ts-check
 
-import { draw_circle, in_circle, draw_line_seg, Interactive, dot, magnitude, wrap, stroke_width, stroke_style, fill_style, style_default, ViewPort2D, make_segment, rescale_vec, draw_ray, stroke_dash, arg_deg, add_points, draw_poly, draw_arrow_head, style, draw_arc, rotate_cw_deg, draw_right_angle, near_ray, unit_vec_deg } from "../../dist/mint.js";
+import { draw_circle, in_circle, draw_line_seg, Interactive, dot, magnitude, wrap, stroke_width, stroke_style, fill_style, style_default, ViewPort2D, make_segment, rescale_vec, draw_ray, stroke_dash, arg_deg, add_points, draw_poly, draw_arrow_head, style, draw_arc, rotate_cw_deg, draw_right_angle, near_ray, unit_vec_deg, draw_text, expand_vec, sub_points } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
@@ -167,6 +167,14 @@ function draw() {
     draw_circle(view, { center: vect_b_proj, radius: rad }, style({ linecolor: "none", fillcolor: col_b }));
     // draw_circle(view, { center: vect_a_axis, radius: rad / 1.4 }, style({ linecolor: "none", fillcolor: col_a }));
     // draw_circle(view, { center: vect_b_axis, radius: rad / 1.4 }, style({ linecolor: "none", fillcolor: col_b }));
+
+    // Annotations go last.
+    draw_text(view, "a", expand_vec(vect_a.value, 2.5 * rad));
+    draw_text(view, "b", expand_vec(vect_b.value, 2.5 * rad));
+    const vect_a_perp = sub_points(vect_a_proj, vect_a.value);
+    const vect_b_perp = sub_points(vect_b_proj, vect_b.value);
+    draw_text(view, "a'", add_points(vect_a_proj, rescale_vec(vect_a_perp, 2.5 * rad)));
+    draw_text(view, "b'", add_points(vect_b_proj, rescale_vec(vect_b_perp, 2.5 * rad)));
 }
 
 
