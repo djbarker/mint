@@ -172,6 +172,7 @@ export function to_data_space_point(view: ViewPort2D, pixels: Point2D): Point2D 
 }
 
 export function stroke_default(ctx: CanvasRenderingContext2D) {
+    fill_off(ctx);
     ctx.lineWidth = 1;
     ctx.strokeStyle = "black";
     ctx.setLineDash([0])
