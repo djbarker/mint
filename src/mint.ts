@@ -106,30 +106,58 @@ export function to_data_space_point(view: ViewPort2D, pixels: Point2D): Point2D 
     return point;
 }
 
-export type StyleT = string | CanvasGradient | CanvasPattern
+export function stroke_default(ctx: CanvasRenderingContext2D) {
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "black";
+    ctx.setLineDash([0])
+}
 
-export function draw_circle(view: ViewPort2D, circle: Circle, fillStyle: StyleT, strokeStyle: StyleT) {
+export function stroke_dash(ctx: CanvasRenderingContext2D, dash: number, gap: number) {
+    ctx.setLineDash([dash, gap]);
+}
+
+export function stroke_style(ctx: CanvasRenderingContext2D, style: string) {
+    ctx.strokeStyle = style;
+}
+
+export function fill_default(ctx: CanvasRenderingContext2D) {
+    ctx.fillStyle = "rgba(255, 255, 255, 0)";
+}
+
+export function fill_style(ctx: CanvasRenderingContext2D, style: string) {
+    ctx.fillStyle = style
+}
+
+export function style_default(ctx: CanvasRenderingContext2D) {
+    stroke_default(ctx)
+    fill_default(ctx);
+}
+
+export type StyleSetter = (ctx: CanvasRenderingContext2D) => void;
+
+export function draw_circle(view: ViewPort2D, circle: Circle, style: StyleSetter = style_default) {
     const center = to_canvas_space_point(view, circle.center);
     const radius = to_canvas_space_dist(view, circle.radius);
 
     view.ctx.beginPath();
     view.ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
-    view.ctx.fillStyle = fillStyle;
-    view.ctx.strokeStyle = strokeStyle;
+    style(view.ctx);
     view.ctx.fill();
     view.ctx.stroke();
+    style_default(view.ctx);
 }
 
 
-export function draw_line_seg(view: ViewPort2D, seg: LineSegment2D, strokeStyle: StyleT) {
+export function draw_line_seg(view: ViewPort2D, seg: LineSegment2D, style: StyleSetter = stroke_default) {
     const start = to_canvas_space_point(view, seg.start);
     const end = to_canvas_space_point(view, seg.end);
 
     view.ctx.beginPath();
     view.ctx.moveTo(start.x, start.y);
     view.ctx.lineTo(end.x, end.y);
-    view.ctx.strokeStyle = strokeStyle;
+    style(view.ctx)
     view.ctx.stroke();
+    style_default(view.ctx);
 }
 
 
@@ -184,7 +212,45 @@ export class Interactive {
     }
 }
 
-export interface InteractiveValue<T> {
+export class Value<T> {
     value: T;
-    recalc(): void;
+    deps: Value<any>[];
+    _recalc: (self: Value<T>, fired: Value<T>) => void;
+
+    constructor(value: T, deps: Value<any>[], recalc: (self: Value<T>) => void,) {
+        this.value = value;
+        this.deps = deps
+        this._recalc = recalc;
+    }
+
+    recalc(fired: Value<T>): void {
+        this._recalc(this, fired);
+        this.deps.forEach(dep => {
+            if (dep != fired) {
+                dep.recalc(this);
+            }
+        });
+    }
+
+    fire(): void {
+        this.deps.forEach(dep => {
+            dep.recalc(this);
+        })
+    }
+
+    with_recalc(inputs: [Value<any>], recalc: (self: Value<T>) => void): Value<T> {
+        let out = new Value<T>(this.value, this.deps, recalc);
+
+        inputs.forEach(input => {
+            input.deps.push(out);
+        });
+
+        return out;
+    }
+}
+
+export function wrap<T>(value: T): Value<T> {
+    return new Value(value, [], (fired) => {
+        console.log("Unset recalc function. Is this intended?");
+    });
 }

@@ -1,4 +1,4 @@
-import { draw_circle, in_circle, draw_line_seg, Interactive, rotate_cw_deg, magnitude } from "../../dist/mint.js";
+import { draw_circle, in_circle, draw_line_seg, Interactive, rotate_cw_deg, magnitude, wrap, stroke_dash, stroke_style, fill_style, style_default } from "../../dist/mint.js";
 
 let canvas = document.getElementById("theCanvas");
 let ctx = canvas.getContext("2d");
@@ -13,64 +13,99 @@ let view = {
     upper: { x: 5, y: 5 },
 };
 
-let circA = { center: { x: 1.0, y: 2.0 }, radius: 0.25 };
-let circB = { center: () => ({ x: circA.center.x, y: -circA.center.y }), radius: 0.25 };
-let circC = { center: () => rotate_cw_deg(reify(circB).center, 45), radius: 0.3 };
-let circD = { center: { x: 0.0, y: 0.0 }, radius: () => magnitude(reify(circB).center) };
 
-function reify(obj) {
-    // Not an "object"; return unchanged.
-    if (!(typeof obj === "object" && obj !== null && !Array.isArray(obj))) {
-        return obj
+let circ_a = wrap({ center: { x: 1.0, y: 2.0 }, radius: 0.25 });
+let circ_b = wrap({ center: { x: 1.0, y: -2.0 }, radius: 0.25 });
+let circ_c = wrap({ center: { x: -1.0, y: -2.0 }, radius: 0.25 });
+let circ_d = wrap({ center: { x: 0, y: 0 }, radius: 1.0 });
+
+circ_a = circ_a.with_recalc(
+    [circ_b],
+    (self, fired) => {
+        self.value.center = { x: circ_b.value.center.x, y: -circ_b.value.center.y };
     }
+);
 
-    // Recursively reify object keys.
-    let obj_out = {}
-    for (const key in obj) {
-        if (typeof obj[key] == "function" && obj[key].length === 0) {
-            obj_out[key] = reify(obj[key]());
-        } else {
-            obj_out[key] = obj[key];
+circ_b = circ_b.with_recalc(
+    [circ_a, circ_c],
+    (self, fired) => {
+        if (fired == circ_a) {
+            self.value.center = { x: circ_a.value.center.x, y: -circ_a.value.center.y };
+        }
+        if (fired == circ_c) {
+            self.value.center = rotate_cw_deg(circ_c.value.center, -45.0);
         }
     }
+)
 
-    return obj_out;
-}
+circ_c = circ_c.with_recalc([circ_b],
+    (self, fired) => {
+        self.value.center = rotate_cw_deg(circ_b.value.center, +45.0);
+    }
+)
+
+circ_d = circ_d.with_recalc([circ_a], (self, fired) => {
+    self.value.radius = magnitude(circ_a.value.center);
+})
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let circB_ = reify(circB);
-    let circC_ = reify(circC);
-    let circD_ = reify(circD);
-    draw_circle(view, circD_, "white", "black dotted");
-    draw_line_seg(view, { start: { x: 0, y: 0 }, end: circA.center }, "darkorange");
-    draw_line_seg(view, { start: circB_.center, end: circA.center }, "steelblue");
-    draw_line_seg(view, { start: circB_.center, end: circC_.center }, "#239b56");
-    draw_circle(view, circA, "darkorange", "black");
-    draw_circle(view, circB_, "steelblue", "black");
-    draw_circle(view, circC_, "#239b56 ", "black");
+    style_default(ctx);
+    draw_circle(view, circ_d.value, (ctx) => { stroke_dash(ctx, [5, 3]); stroke_style(ctx, "black"); });
+    draw_line_seg(view, { start: { x: 0, y: 0 }, end: circ_a.value.center }, (ctx) => stroke_style(ctx, "darkorange"));
+    draw_line_seg(view, { start: circ_a.value.center, end: circ_b.value.center }, (ctx) => stroke_style(ctx, "steelblue"));
+    draw_line_seg(view, { start: circ_b.value.center, end: circ_c.value.center }, (ctx) => stroke_style(ctx, "#239b56"));
+    draw_circle(view, circ_a.value, (ctx) => fill_style(ctx, "darkorange"));
+    draw_circle(view, circ_b.value, (ctx) => fill_style(ctx, "steelblue"));
+    draw_circle(view, circ_c.value, (ctx) => fill_style(ctx, "#239b56 "));
 }
 
 let interact = new Interactive(view);
-let circA_selected = false;
+
+let circ_a_selected = false;
+let circ_b_selected = false;
+let circ_c_selected = false;
 
 interact.onMouseDown((mouseXY) => {
-    if (in_circle(circA, mouseXY)) {
-        circA_selected = true;
+    if (in_circle(circ_a.value, mouseXY)) {
+        circ_a_selected = true;
+    }
+
+    if (in_circle(circ_b.value, mouseXY)) {
+        circ_b_selected = true;
+    }
+
+    if (in_circle(circ_c.value, mouseXY)) {
+        circ_c_selected = true;
     }
 });
 
 interact.onMouseUp((mouseXY) => {
-    circA_selected = false;
+    circ_a_selected = false;
+    circ_b_selected = false;
+    circ_c_selected = false;
 })
 
 interact.onMouseDrag((mouseXY) => {
+    if (circ_a_selected) {
+        circ_a.value.center = mouseXY;
+        circ_a.deps.forEach(dep => dep.recalc(circ_a));
+    }
 
-    if (circA_selected) {
-        circA.center = mouseXY;
+    if (circ_b_selected) {
+        circ_b.value.center = mouseXY;
+        circ_b.deps.forEach(dep => dep.recalc(circ_b));
+    }
+
+    if (circ_c_selected) {
+        circ_c.value.center = mouseXY;
+        circ_c.deps.forEach(dep => dep.recalc(circ_c));
     }
 
     draw();
 });
+
+
+circ_a.fire();
 
 draw();
