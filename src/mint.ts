@@ -349,6 +349,7 @@ export function draw_arc(view: ViewPort2D, start: Point2D, radius: number, angle
 export class Interactive {
     view: ViewPort2D;
     is_dragging: boolean = false;
+    lock: boolean = false;
 
     constructor(view: ViewPort2D) {
         this.view = view;
@@ -377,13 +378,17 @@ export class Interactive {
         }
 
         canvas.addEventListener("mousedown", this._toHandler((m) => {
-            if (hit_test(m)) {
+            if (hit_test(m) && !this.lock) {
                 out.is_dragging = true;
+                this.lock = true;
             }
         }))
 
         canvas.addEventListener("mouseup", (e) => {
             out.is_dragging = false;
+            if (out.is_hovered) {
+                this.lock = false;
+            }
         });
 
         canvas.addEventListener("mousemove", this._toHandler((m) => {
