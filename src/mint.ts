@@ -60,7 +60,7 @@ export function arg_deg(a: Point2D): number {
 }
 
 export function magnitude(a: Point2D): number {
-    return Math.sqrt(a.x * a.x + a.y * a.y);
+    return Math.sqrt(dot(a, a));
 }
 
 export function rescale_vec(v: Point2D, vmag: number): Point2D {
