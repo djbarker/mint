@@ -1,6 +1,6 @@
 // @ts-check
 
-import { draw_circle, in_circle, draw_line_seg, Interactive, dot, magnitude, wrap, stroke_width, stroke_style, fill_style, style_default, ViewPort2D, make_segment, rescale_vec, draw_ray, stroke_dash, arg_deg, add_points, draw_poly, draw_arrow_head, style, draw_arc, rotate_cw_deg, draw_right_angle } from "../../dist/mint.js";
+import { draw_circle, in_circle, draw_line_seg, Interactive, dot, magnitude, wrap, stroke_width, stroke_style, fill_style, style_default, ViewPort2D, make_segment, rescale_vec, draw_ray, stroke_dash, arg_deg, add_points, draw_poly, draw_arrow_head, style, draw_arc, rotate_cw_deg, draw_right_angle, near_ray, unit_vec_deg } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
@@ -26,6 +26,29 @@ const col_r = "rgba(1, 1, 1, 0.1)";
 let vect_a = wrap({ x: 1.0, y: 3.0 });
 let vect_b = wrap({ x: 3.0, y: 1.0 });
 
+let ray_a = wrap({ start: { x: 0, y: 0 }, angle: 0 });
+let ray_b = wrap({ start: { x: 0, y: 0 }, angle: 0 });
+
+ray_a.set_recalc([vect_a], (self, fired) => {
+    self.value.angle = arg_deg(vect_a.value);
+})
+
+ray_b.set_recalc([vect_b], (self, fired) => {
+    self.value.angle = arg_deg(vect_b.value);
+})
+
+vect_a.set_recalc([ray_a], (self, fired) => {
+    const mag = magnitude(self.value);
+    const vec = rescale_vec(unit_vec_deg(ray_a.value.angle), mag);
+    vect_a.value = vec;
+})
+
+vect_b.set_recalc([ray_b], (self, fired) => {
+    const mag = magnitude(self.value);
+    const vec = rescale_vec(unit_vec_deg(ray_b.value.angle), mag);
+    vect_b.value = vec;
+})
+
 let interact = new Interactive(view);
 
 function registerVector(vect) {
@@ -40,6 +63,21 @@ function registerVector(vect) {
 
 const vect_a_int = registerVector(vect_a);
 const vect_b_int = registerVector(vect_b);
+
+function registerRay(ray) {
+    return interact.registerDraggable(0,
+        (mouseXY) => near_ray(ray.value, mouseXY, rad),
+        (mouseXY) => {
+            const arg = arg_deg(mouseXY);
+            ray.value.angle = arg;
+            // TODO: push this up into registerDraggable!
+            ray.deps.forEach(dep => dep.recalc(ray));
+        }
+    );
+}
+
+const ray_a_int = registerRay(ray_a);
+const ray_b_int = registerRay(ray_b);
 
 function draw() {
 
@@ -68,10 +106,12 @@ function draw() {
     draw_line_seg(view, make_segment(origin, 15, 90), axis_style);
 
     // Draw the rays.
-    draw_ray(view, { start: origin, angle: 0 + arg_deg(vect_a.value) }, (ctx) => { stroke_dash(ctx, 2, 4) });
-    draw_ray(view, { start: origin, angle: 0 + arg_deg(vect_b.value) }, (ctx) => { stroke_dash(ctx, 2, 4) });
-    draw_ray(view, { start: origin, angle: 180 + arg_deg(vect_a.value) }, (ctx) => { stroke_dash(ctx, 2, 4) });
-    draw_ray(view, { start: origin, angle: 180 + arg_deg(vect_b.value) }, (ctx) => { stroke_dash(ctx, 2, 4) });
+    const width_ray_a = ray_a_int.is_hovered ? 2 : 1;
+    const width_ray_b = ray_b_int.is_hovered ? 2 : 1;
+    draw_ray(view, { start: origin, angle: 0 + arg_deg(vect_a.value) }, style({ linestyle: "dashed", linewidth: width_ray_a }));
+    draw_ray(view, { start: origin, angle: 0 + arg_deg(vect_b.value) }, style({ linestyle: "dashed", linewidth: width_ray_b }));
+    draw_ray(view, { start: origin, angle: 180 + arg_deg(vect_a.value) }, style({ linestyle: "dashed", linewidth: width_ray_a }));
+    draw_ray(view, { start: origin, angle: 180 + arg_deg(vect_b.value) }, style({ linestyle: "dashed", linewidth: width_ray_b }));
 
     // Draw the rectangles.
     const rect_1 = [origin, vect_a_axis, { x: vect_b_axis.x, y: vect_a_axis.y }, vect_b_axis];

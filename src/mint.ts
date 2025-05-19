@@ -111,9 +111,13 @@ export interface Ray2D {
     angle: number,
 }
 
-// export function near_line_seg_2d(seg: LineSegment2D, p: Point2D, d: number) {
-
-// }
+export function near_ray(ray: Ray2D, point: Point2D, eps: number): boolean {
+    const r_unit = unit_vec_deg(ray.angle);
+    const rc_dot = dot(r_unit, sub_points(point, ray.start))
+    const c_para = rescale_vec(r_unit, rc_dot);
+    const c_perp = sub_points(point, c_para);
+    return (rc_dot > 0) && (magnitude(c_perp) <= eps)
+}
 
 // Convert our data space into canvas locations.
 export class ViewPort2D {
@@ -519,3 +523,7 @@ export function wrap<T>(value: T): Value<T> {
         console.log("Unset recalc function. Is this intended?");
     });
 }
+
+// export function link(value_a: Value<any>, value_b: Value<any>, a_from_b: () => void, b_from_a: () => void) {
+//     value_a
+// }
