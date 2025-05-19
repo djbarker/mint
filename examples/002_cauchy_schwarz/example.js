@@ -1,10 +1,12 @@
-import { draw_circle, in_circle, draw_line_seg, Interactive, dot, magnitude, wrap, stroke_width, stroke_style, fill_style, style_default, ViewPort2D, make_segment, rescale_vec, draw_ray, stroke_dash, arg_deg, add_points, draw_poly, draw_arrow_head, style, draw_arc, rotate_cw_deg } from "../../dist/mint.js";
+// @ts-check
 
+import { draw_circle, in_circle, draw_line_seg, Interactive, dot, magnitude, wrap, stroke_width, stroke_style, fill_style, style_default, ViewPort2D, make_segment, rescale_vec, draw_ray, stroke_dash, arg_deg, add_points, draw_poly, draw_arrow_head, style, draw_arc, rotate_cw_deg, draw_right_angle } from "../../dist/mint.js";
+
+/** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
-let ctx = canvas.getContext("2d");
 
-canvas.width = 400;
-canvas.height = 400;
+/** @type {CanvasRenderingContext2D} */
+let ctx = canvas.getContext("2d");
 
 // The viewport to the canvas.
 let view = new ViewPort2D(
@@ -94,6 +96,9 @@ function draw() {
     draw_line_seg(view, { start: vect_a.value, end: vect_a_proj }, style({ linestyle: "dashed", linecolor: col_a }));
     draw_line_seg(view, { start: vect_b.value, end: vect_b_proj }, style({ linestyle: "dashed", linecolor: col_b }));
 
+    draw_right_angle(view, vect_a_proj, 1.5 * rad, arg_deg(vect_a_proj), "-+", style({ linecolor: col_a }));
+    draw_right_angle(view, vect_b_proj, 1.5 * rad, arg_deg(vect_b_proj), "--", style({ linecolor: col_b }));
+
     // Draw the main vectors.
 
     draw_line_seg(view, { start: origin, end: vect_a.value }, (ctx) => { stroke_style(ctx, col_a); stroke_width(ctx, 2) });
@@ -112,8 +117,8 @@ function draw() {
 
     const head_a = rescale_vec(vect_a.value, magnitude(vect_a.value) - rad);
     const head_b = rescale_vec(vect_b.value, magnitude(vect_b.value) - rad);
-    draw_arrow_head(view, { start: head_a, angle: arg_deg(head_a) }, 2 * rad, 60, style({ linecolor: "off", fillcolor: col_a }));
-    draw_arrow_head(view, { start: head_b, angle: arg_deg(head_b) }, 2 * rad, 60, style({ linecolor: "off", fillcolor: col_b }));
+    draw_arrow_head(view, { start: head_a, angle: arg_deg(head_a) }, 2 * rad, 70, style({ linecolor: "off", fillcolor: col_a }));
+    draw_arrow_head(view, { start: head_b, angle: arg_deg(head_b) }, 2 * rad, 70, style({ linecolor: "off", fillcolor: col_b }));
 
     // Draw the projections.
     draw_circle(view, { center: vect_a_proj, radius: rad / 1.4 }, style({ linecolor: "none", fillcolor: col_a }));
