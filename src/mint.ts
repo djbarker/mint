@@ -128,28 +128,80 @@ export function stroke_style(ctx: CanvasRenderingContext2D, style: string) {
     ctx.strokeStyle = style;
 }
 
-export function fill_default(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = "rgba(255, 255, 255, 0)";
+export function stroke_width(ctx: CanvasRenderingContext2D, width: number) {
+    ctx.lineWidth = width;
+}
+export function stroke_off(ctx: CanvasRenderingContext2D) {
+    ctx.strokeStyle = "rgba(1, 1, 1, 0)";
+    ctx.lineWidth = 0;
 }
 
 export function fill_style(ctx: CanvasRenderingContext2D, style: string) {
     ctx.fillStyle = style
 }
 
+export function fill_off(ctx: CanvasRenderingContext2D) {
+    fill_style(ctx, "rgba(1, 1, 1, 0)");
+}
+
+export function fill_default(ctx: CanvasRenderingContext2D) {
+    stroke_off(ctx)
+    fill_style(ctx, "black");
+}
+
 export function style_default(ctx: CanvasRenderingContext2D) {
-    stroke_default(ctx)
-    fill_default(ctx);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "black";
+    ctx.setLineDash([0])
 }
 
 export type StyleSetter = (ctx: CanvasRenderingContext2D) => void;
+
+export interface StyleProprs {
+    fillcolor?: string | CanvasGradient | CanvasPattern,
+    linewidth?: number,
+    linecolor?: string | CanvasGradient | CanvasPattern,
+    linestyle?: string,
+}
+export function style(props: StyleProprs): (ctx: CanvasRenderingContext2D) => void {
+    return (ctx: CanvasRenderingContext2D) => {
+        if (typeof props.fillcolor !== "undefined") {
+            ctx.fillStyle = props.fillcolor;
+        }
+        if (typeof props.linewidth !== "undefined") {
+            ctx.lineWidth = props.linewidth;
+        }
+        if (typeof props.linecolor !== "undefined") {
+            if ((props.linecolor == "off") || (props.linecolor == "none")) {
+                stroke_off(ctx);
+            } else {
+                ctx.strokeStyle = props.linecolor;
+            }
+        }
+        if (typeof props.linestyle !== "undefined") {
+            if ((props.linecolor == "off") || (props.linecolor == "none")) {
+                stroke_off(ctx);
+            } else if (props.linestyle == "solid") {
+                ctx.setLineDash([0]);
+            } else if (props.linestyle == "dashed") {
+                ctx.setLineDash([5, 3]);
+            } else if (props.linestyle == "dotted") {
+                ctx.setLineDash([2, 3]);
+            } else if (props.linestyle == "dashdot") {
+                ctx.setLineDash([5, 3, 2, 3]);
+            }
+        }
+    };
+}
+
 
 export function draw_circle(view: ViewPort2D, circle: Circle, style: StyleSetter = style_default) {
     const center = to_canvas_space_point(view, circle.center);
     const radius = to_canvas_space_dist(view, circle.radius);
 
     view.ctx.beginPath();
-    view.ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
     style(view.ctx);
+    view.ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
     view.ctx.fill();
     view.ctx.stroke();
     style_default(view.ctx);
