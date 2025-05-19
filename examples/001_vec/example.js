@@ -62,50 +62,26 @@ function draw() {
 
 let interact = new Interactive(view);
 
-let circ_a_selected = false;
-let circ_b_selected = false;
-let circ_c_selected = false;
+function registerCircle(circ) {
+    interact.registerDraggable(
+        (mouseXY) => in_circle(circ.value, mouseXY),
+        (mouseXY) => {
+            circ.value.center = mouseXY;
+            circ.deps.forEach(dep => dep.recalc(circ));
+        }
+    );
+}
 
-interact.onMouseDown((mouseXY) => {
-    if (in_circle(circ_a.value, mouseXY)) {
-        circ_a_selected = true;
-    }
+registerCircle(circ_a);
+registerCircle(circ_b);
+registerCircle(circ_c);
 
-    if (in_circle(circ_b.value, mouseXY)) {
-        circ_b_selected = true;
-    }
-
-    if (in_circle(circ_c.value, mouseXY)) {
-        circ_c_selected = true;
-    }
-});
-
-interact.onMouseUp((mouseXY) => {
-    circ_a_selected = false;
-    circ_b_selected = false;
-    circ_c_selected = false;
-})
-
-interact.onMouseDrag((mouseXY) => {
-    if (circ_a_selected) {
-        circ_a.value.center = mouseXY;
-        circ_a.deps.forEach(dep => dep.recalc(circ_a));
-    }
-
-    if (circ_b_selected) {
-        circ_b.value.center = mouseXY;
-        circ_b.deps.forEach(dep => dep.recalc(circ_b));
-    }
-
-    if (circ_c_selected) {
-        circ_c.value.center = mouseXY;
-        circ_c.deps.forEach(dep => dep.recalc(circ_c));
-    }
-
+interact.addOnMouseDrag((mouseXY) => {
     draw();
 });
 
-
+// Start by assuming a is in the correct position and recalculating the others.
 circ_a.fire();
 
+// Draw the initial setup.
 draw();

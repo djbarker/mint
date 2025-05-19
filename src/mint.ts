@@ -160,17 +160,18 @@ export function draw_line_seg(view: ViewPort2D, seg: LineSegment2D, style: Style
     style_default(view.ctx);
 }
 
-
-
 export class Interactive {
     view: ViewPort2D;
-    is_dragging: boolean
+    is_dragging: boolean = false;
 
     constructor(view: ViewPort2D) {
         this.view = view;
-        this.is_dragging = false;
+
+        view.ctx.canvas.addEventListener("mousedown", (e) => { this.is_dragging = true; });
+        view.ctx.canvas.addEventListener("mouseup", (e) => { this.is_dragging = false; });
     }
 
+    // This automatically converts the mouse event in canvas coordinates to data-space coordinates.
     _toHandler(func: (mouseXY: Point2D) => void): (e: MouseEvent) => void {
         return (e: MouseEvent) => {
             const rect = this.view.ctx.canvas.getBoundingClientRect();
@@ -181,33 +182,47 @@ export class Interactive {
         }
     }
 
-    onMouseDown(func: (mouseXY: Point2D) => void) {
-        let handler = (mxy: Point2D) => {
-            this.is_dragging = true;
-            func(mxy);
-        };
-        this.view.ctx.canvas.addEventListener("mousedown", this._toHandler(handler));
-    }
+    registerDraggable(hit_test: (p: Point2D) => boolean, on_drag: (p: Point2D) => void) {
+        const canvas = this.view.ctx.canvas;
 
-    onMouseUp(func: (mouseXY: Point2D) => void) {
-        let handler = (mxy: Point2D) => {
-            this.is_dragging = false;
-            func(mxy);
-        };
-        this.view.ctx.canvas.addEventListener("mouseup", this._toHandler(handler));
-        // this.view.ctx.canvas.addEventListener("mouseleave", this._toHandler(handler));
-    }
+        let is_dragging = false;
 
-    onMouseDrag(func: (mouseXY: Point2D) => void) {
-        let func_ = (mxy: Point2D) => {
-            if (this.is_dragging) {
-                func(mxy);
+        canvas.addEventListener("mousedown", this._toHandler((m) => {
+            if (hit_test(m)) {
+                is_dragging = true;
             }
-        }
-        this.view.ctx.canvas.addEventListener("mousemove", this._toHandler(func_));
+        }))
+
+        canvas.addEventListener("mouseup", (e) => {
+            is_dragging = false;
+        });
+
+        canvas.addEventListener("mousemove", this._toHandler((m) => {
+            if (is_dragging) {
+                on_drag(m);
+            }
+        }));
     }
 
-    onMouseMove(func: (mouseXY: Point2D) => void) {
+    addOnMouseDown(func: (mouseXY: Point2D) => void) {
+        this.view.ctx.canvas.addEventListener("mousedown", this._toHandler(func));
+    }
+
+    addOnMouseUp(func: (mouseXY: Point2D) => void) {
+        this.view.ctx.canvas.addEventListener("mouseup", this._toHandler(func));
+        // this.view.ctx.canvas.addEventListener("mouseleave", this._toHandler(func));
+    }
+
+    addOnMouseDrag(func: (mouseXY: Point2D) => void) {
+        const func_gated = (mXY: Point2D) => {
+            if (this.is_dragging) {
+                func(mXY);
+            }
+        };
+        this.view.ctx.canvas.addEventListener("mousemove", this._toHandler(func_gated));
+    }
+
+    addOnMouseMove(func: (mouseXY: Point2D) => void) {
         this.view.ctx.canvas.addEventListener("mousemove", this._toHandler(func));
     }
 }
