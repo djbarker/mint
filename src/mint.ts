@@ -351,6 +351,32 @@ export function draw_arc(view: ViewPort2D, start: Point2D, radius: number, angle
     stroke_default(view.ctx);
 }
 
+export type Quadrant = "++" | "+-" | "--" | "-+";
+
+export function draw_right_angle(view: ViewPort2D, point: Point2D, size: number, angle: number, quadrant: Quadrant, style: StyleSetter = stroke_default) {
+    const sx = (quadrant == "++" || quadrant == "+-") ? 1 : -1;
+    const sy = (quadrant == "++" || quadrant == "-+") ? 1 : -1;
+    let a = { x: size * sx, y: 0 };
+    let b = { x: size * sx, y: size * sy };
+    let c = { x: 0, y: size * sy };
+    a = add_points(point, rotate_cw_deg(a, angle));
+    b = add_points(point, rotate_cw_deg(b, angle));
+    c = add_points(point, rotate_cw_deg(c, angle));
+
+    a = to_canvas_space_point(view, a);
+    b = to_canvas_space_point(view, b);
+    c = to_canvas_space_point(view, c);
+
+    view.ctx.beginPath();
+    style(view.ctx);
+    view.ctx.moveTo(a.x, a.y);
+    view.ctx.lineTo(b.x, b.y);
+    view.ctx.lineTo(c.x, c.y);
+    view.ctx.stroke();
+    view.ctx.fill();
+    style_default(view.ctx);
+}
+
 export class Interactive {
     view: ViewPort2D;
     is_dragging: boolean = false;
