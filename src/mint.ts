@@ -71,6 +71,10 @@ export function rescale_vec(v: Point2D, vmag: number): Point2D {
     };
 }
 
+export function expand_vec(v: Point2D, len: number): Point2D {
+    return rescale_vec(v, magnitude(v) + len);
+}
+
 // Returns a unit vector with the given argument (clockwise angle from the x-axis).
 export function unit_vec_deg(angle: number) {
     const rad = deg_to_rad(angle);
