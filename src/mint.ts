@@ -195,7 +195,7 @@ export class Interactive {
             func(mxy);
         };
         this.view.ctx.canvas.addEventListener("mouseup", this._toHandler(handler));
-        this.view.ctx.canvas.addEventListener("mouseleave", this._toHandler(handler));
+        // this.view.ctx.canvas.addEventListener("mouseleave", this._toHandler(handler));
     }
 
     onMouseDrag(func: (mouseXY: Point2D) => void) {
