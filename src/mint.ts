@@ -1,0 +1,190 @@
+
+export interface Point2D {
+    x: number,
+    y: number,
+}
+
+export function add_points(a: Point2D, b: Point2D): Point2D {
+    return {
+        x: a.x + b.x,
+        y: a.y + b.y,
+    }
+}
+
+export function sub_points(a: Point2D, b: Point2D): Point2D {
+    return {
+        x: a.x - b.x,
+        y: a.y - b.y,
+    }
+}
+
+export function div_points(a: Point2D, b: Point2D): Point2D {
+    return {
+        x: a.x / b.x,
+        y: a.y / b.y,
+    }
+}
+
+export function mul_points(a: Point2D, b: Point2D): Point2D {
+    return {
+        x: a.x * b.x,
+        y: a.y * b.y,
+    }
+}
+
+export function deg_to_rag(angle: number): number {
+    return angle * Math.PI / 180.0;
+}
+
+export function rotate_cw_deg(a: Point2D, angle: number) {
+    const angle_rad = deg_to_rag(angle);
+    return {
+        x: a.x * Math.cos(angle_rad) - a.y * Math.sin(angle_rad),
+        y: a.x * Math.sin(angle_rad) + a.y * Math.cos(angle_rad),
+    }
+}
+
+
+export function magnitude(a: Point2D) {
+    return Math.sqrt(a.x * a.x + a.y * a.y);
+}
+
+export function rescale_vec(v: Point2D, vmag: number): Point2D {
+    const mult = vmag / magnitude(v);
+    return {
+        x: mult * v.x,
+        y: mult * v.y,
+    };
+}
+
+export interface Circle {
+    center: Point2D,
+    radius: number,
+}
+
+export function in_circle(c: Circle, p: Point2D): boolean {
+    let dx = p.x - c.center.x;
+    let dy = p.y - c.center.y;
+    return (dx * dx + dy * dy) <= c.radius * c.radius
+}
+
+export interface LineSegment2D {
+    start: Point2D,
+    end: Point2D,
+}
+
+// export function near_line_seg_2d(seg: LineSegment2D, p: Point2D, d: number) {
+
+// }
+
+// Convert our data space into canvas locations.
+export interface ViewPort2D {
+    ctx: CanvasRenderingContext2D,
+    lower: Point2D,
+    upper: Point2D,
+}
+
+export function to_canvas_space_point(view: ViewPort2D, point: Point2D): Point2D {
+    let frac = div_points(sub_points(point, view.lower), sub_points(view.upper, view.lower));
+    let size = { x: view.ctx.canvas.width, y: view.ctx.canvas.height };
+    let pixels = mul_points(frac, size);
+    return pixels;
+}
+
+// NOTE: Assumes the canvas's aspect ratio matches the viewport's.
+export function to_canvas_space_dist(view: ViewPort2D, dist: number): number {
+    const frac = dist / (view.upper.x - view.lower.y);
+    const size = view.ctx.canvas.width;
+    const pixels = frac * size;
+    return pixels;
+}
+
+export function to_data_space_point(view: ViewPort2D, pixels: Point2D): Point2D {
+    const size = { x: view.ctx.canvas.width, y: view.ctx.canvas.height };
+    const frac = div_points(pixels, size);
+    const point = add_points(view.lower, mul_points(frac, sub_points(view.upper, view.lower)));
+    return point;
+}
+
+export type StyleT = string | CanvasGradient | CanvasPattern
+
+export function draw_circle(view: ViewPort2D, circle: Circle, fillStyle: StyleT, strokeStyle: StyleT) {
+    const center = to_canvas_space_point(view, circle.center);
+    const radius = to_canvas_space_dist(view, circle.radius);
+
+    view.ctx.beginPath();
+    view.ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
+    view.ctx.fillStyle = fillStyle;
+    view.ctx.strokeStyle = strokeStyle;
+    view.ctx.fill();
+    view.ctx.stroke();
+}
+
+
+export function draw_line_seg(view: ViewPort2D, seg: LineSegment2D, strokeStyle: StyleT) {
+    const start = to_canvas_space_point(view, seg.start);
+    const end = to_canvas_space_point(view, seg.end);
+
+    view.ctx.beginPath();
+    view.ctx.moveTo(start.x, start.y);
+    view.ctx.lineTo(end.x, end.y);
+    view.ctx.strokeStyle = strokeStyle;
+    view.ctx.stroke();
+}
+
+
+
+export class Interactive {
+    view: ViewPort2D;
+    is_dragging: boolean
+
+    constructor(view: ViewPort2D) {
+        this.view = view;
+        this.is_dragging = false;
+    }
+
+    _toHandler(func: (mouseXY: Point2D) => void): (e: MouseEvent) => void {
+        return (e: MouseEvent) => {
+            const rect = this.view.ctx.canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const mouseXY = to_data_space_point(this.view, { x: mouseX, y: mouseY });
+            func(mouseXY);
+        }
+    }
+
+    onMouseDown(func: (mouseXY: Point2D) => void) {
+        let handler = (mxy: Point2D) => {
+            this.is_dragging = true;
+            func(mxy);
+        };
+        this.view.ctx.canvas.addEventListener("mousedown", this._toHandler(handler));
+    }
+
+    onMouseUp(func: (mouseXY: Point2D) => void) {
+        let handler = (mxy: Point2D) => {
+            this.is_dragging = false;
+            func(mxy);
+        };
+        this.view.ctx.canvas.addEventListener("mouseup", this._toHandler(handler));
+        this.view.ctx.canvas.addEventListener("mouseleave", this._toHandler(handler));
+    }
+
+    onMouseDrag(func: (mouseXY: Point2D) => void) {
+        let func_ = (mxy: Point2D) => {
+            if (this.is_dragging) {
+                func(mxy);
+            }
+        }
+        this.view.ctx.canvas.addEventListener("mousemove", this._toHandler(func_));
+    }
+
+    onMouseMove(func: (mouseXY: Point2D) => void) {
+        this.view.ctx.canvas.addEventListener("mousemove", this._toHandler(func));
+    }
+}
+
+export interface InteractiveValue<T> {
+    value: T;
+    recalc(): void;
+}

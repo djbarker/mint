@@ -1,0 +1,12 @@
+{
+  "name": "mint",
+  "version": "0.0.1",
+  "main": "dist/mint.js",
+  "types": "dist/mint.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
