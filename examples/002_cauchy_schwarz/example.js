@@ -136,33 +136,35 @@ function draw() {
     draw_line_seg(view, { start: vect_a.value, end: vect_a_proj }, style({ linestyle: "dashed", linecolor: col_a }));
     draw_line_seg(view, { start: vect_b.value, end: vect_b_proj }, style({ linestyle: "dashed", linecolor: col_b }));
 
-    draw_right_angle(view, vect_a_proj, 1.5 * rad, arg_deg(vect_a_proj), "-+", style({ linecolor: col_a }));
-    draw_right_angle(view, vect_b_proj, 1.5 * rad, arg_deg(vect_b_proj), "--", style({ linecolor: col_b }));
+    draw_right_angle(view, vect_a_proj, 2 * rad, arg_deg(vect_a_proj), "-+", style({ linecolor: col_a }));
+    draw_right_angle(view, vect_b_proj, 2 * rad, arg_deg(vect_b_proj), "--", style({ linecolor: col_b }));
 
     // Draw the main vectors.
 
     draw_line_seg(view, { start: origin, end: vect_a.value }, (ctx) => { stroke_style(ctx, col_a); stroke_width(ctx, 2) });
     draw_line_seg(view, { start: origin, end: vect_b.value }, (ctx) => { stroke_style(ctx, col_b); stroke_width(ctx, 2) });
 
-    const style_a = (ctx) => {
-        fill_style(ctx, (vect_a_int.is_hovered) ? "#c46a00" : col_a);
-    }
+    const style_a = (vect_a_int.is_hovered) ? {
+        fillcolor: "#c46a00",
+        linewidth: 2,
+    } : { fillcolor: col_a };
 
-    const style_b = (ctx) => {
-        fill_style(ctx, (vect_b_int.is_hovered) ? "#215e8e" : col_b);
-    }
+    const style_b = (vect_b_int.is_hovered) ? {
+        fillcolor: "#215e8e",
+        linewidth: 2,
+    } : { fillcolor: col_b };
 
-    draw_circle(view, { center: vect_a.value, radius: rad }, style_a);
-    draw_circle(view, { center: vect_b.value, radius: rad }, style_b);
+    draw_circle(view, { center: vect_a.value, radius: rad }, style(style_a));
+    draw_circle(view, { center: vect_b.value, radius: rad }, style(style_b));
 
     const head_a = rescale_vec(vect_a.value, magnitude(vect_a.value) - rad);
     const head_b = rescale_vec(vect_b.value, magnitude(vect_b.value) - rad);
-    draw_arrow_head(view, { start: head_a, angle: arg_deg(head_a) }, 2 * rad, 70, style({ linecolor: "off", fillcolor: col_a }));
-    draw_arrow_head(view, { start: head_b, angle: arg_deg(head_b) }, 2 * rad, 70, style({ linecolor: "off", fillcolor: col_b }));
+    draw_arrow_head(view, { start: head_a, angle: arg_deg(head_a) }, 3 * rad, 70, style({ linecolor: "off", fillcolor: col_a }));
+    draw_arrow_head(view, { start: head_b, angle: arg_deg(head_b) }, 3 * rad, 70, style({ linecolor: "off", fillcolor: col_b }));
 
     // Draw the projections.
-    draw_circle(view, { center: vect_a_proj, radius: rad / 1.4 }, style({ linecolor: "none", fillcolor: col_a }));
-    draw_circle(view, { center: vect_b_proj, radius: rad / 1.4 }, style({ linecolor: "none", fillcolor: col_b }));
+    draw_circle(view, { center: vect_a_proj, radius: rad }, style({ linecolor: "none", fillcolor: col_a }));
+    draw_circle(view, { center: vect_b_proj, radius: rad }, style({ linecolor: "none", fillcolor: col_b }));
     // draw_circle(view, { center: vect_a_axis, radius: rad / 1.4 }, style({ linecolor: "none", fillcolor: col_a }));
     // draw_circle(view, { center: vect_b_axis, radius: rad / 1.4 }, style({ linecolor: "none", fillcolor: col_b }));
 }
