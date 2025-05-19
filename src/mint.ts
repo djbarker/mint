@@ -332,7 +332,12 @@ export function draw_arc(view: ViewPort2D, start: Point2D, radius: number, angle
     angle_start = - angle_start
     angle_end = - angle_end
 
-    const anticlockwise = (angle_end < angle_start);
+    let delta = angle_end - angle_start;
+    if (delta < 0) {
+        delta += 360;
+    }
+
+    const anticlockwise = delta > 180;
 
     view.ctx.beginPath();
     view.ctx.arc(start.x, start.y, radius, deg_to_rad(angle_start), deg_to_rad(angle_end), anticlockwise);
