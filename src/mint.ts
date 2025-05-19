@@ -223,7 +223,11 @@ export interface StyleProprs {
 export function style(props: StyleProprs): (ctx: CanvasRenderingContext2D) => void {
     return (ctx: CanvasRenderingContext2D) => {
         if (typeof props.fillcolor !== "undefined") {
-            ctx.fillStyle = props.fillcolor;
+            if ((props.fillcolor == "off") || (props.fillcolor == "none")) {
+                fill_off(ctx);
+            } else {
+                ctx.fillStyle = props.fillcolor;
+            }
         }
         if (typeof props.linewidth !== "undefined") {
             ctx.lineWidth = props.linewidth;
