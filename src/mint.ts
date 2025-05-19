@@ -32,20 +32,34 @@ export function mul_points(a: Point2D, b: Point2D): Point2D {
     }
 }
 
-export function deg_to_rag(angle: number): number {
+export function dot(a: Point2D, b: Point2D): number {
+    return a.x * b.x + a.y * b.y;
+}
+
+export function deg_to_rad(angle: number): number {
     return angle * Math.PI / 180.0;
 }
 
+
+export function rad_to_deg(angle: number): number {
+    return angle * 180.0 / Math.PI;
+}
+
+
 export function rotate_cw_deg(a: Point2D, angle: number) {
-    const angle_rad = deg_to_rag(angle);
+    const angle_rad = deg_to_rad(angle);
     return {
         x: a.x * Math.cos(angle_rad) - a.y * Math.sin(angle_rad),
         y: a.x * Math.sin(angle_rad) + a.y * Math.cos(angle_rad),
     }
 }
 
+// Return the arugment (clockwise angle from x-axis) in degrees.
+export function arg_deg(a: Point2D): number {
+    return rad_to_deg(Math.atan2(a.y, a.x));
+}
 
-export function magnitude(a: Point2D) {
+export function magnitude(a: Point2D): number {
     return Math.sqrt(a.x * a.x + a.y * a.y);
 }
 
@@ -55,6 +69,15 @@ export function rescale_vec(v: Point2D, vmag: number): Point2D {
         x: mult * v.x,
         y: mult * v.y,
     };
+}
+
+// Returns a unit vector with the given argument (clockwise angle from the x-axis).
+export function unit_vec_deg(angle: number) {
+    const rad = deg_to_rad(angle);
+    return {
+        x: Math.cos(rad),
+        y: Math.sin(rad),
+    }
 }
 
 export interface Circle {
@@ -73,6 +96,21 @@ export interface LineSegment2D {
     end: Point2D,
 }
 
+export function make_segment(center_xy: Point2D, length: number, angle_deg: number): LineSegment2D {
+    const offset = rescale_vec(unit_vec_deg(angle_deg), length / 2.0);
+    const start = add_points(center_xy, rotate_cw_deg(offset, 180));
+    const end = add_points(center_xy, offset);
+    return {
+        start: start,
+        end: end,
+    }
+}
+
+export interface Ray2D {
+    start: Point2D,
+    angle: number,
+}
+
 // export function near_line_seg_2d(seg: LineSegment2D, p: Point2D, d: number) {
 
 // }
@@ -84,8 +122,8 @@ export class ViewPort2D {
     upper: Point2D;
 
     constructor(
-    ctx: CanvasRenderingContext2D,
-    lower: Point2D,
+        ctx: CanvasRenderingContext2D,
+        lower: Point2D,
         upper: Point2D) {
         this.ctx = ctx;
         this.lower = lower;
@@ -237,6 +275,70 @@ export function draw_line_seg(view: ViewPort2D, seg: LineSegment2D, style: Style
     style(view.ctx)
     view.ctx.stroke();
     style_default(view.ctx);
+}
+
+export function draw_arrow_head(view: ViewPort2D, ray: Ray2D, size: number, angle: number = 60, style: StyleSetter = fill_default) {
+    const beta = 90 - ray.angle + angle;
+    const gamma = 90 - angle;
+    const unit = unit_vec_deg(-beta)
+    const head1 = rescale_vec(unit, size);
+    const head2 = rotate_cw_deg(head1, -2 * gamma);
+    const points = [
+        ray.start,
+        add_points(ray.start, head1),
+        add_points(ray.start, head2),
+    ];
+    draw_poly(view, points, style);
+}
+
+export function draw_ray(view: ViewPort2D, ray: Ray2D, style: StyleSetter = stroke_default) {
+    const length = Math.max(view.width, view.height) * 1.5; // NOTE: 1.5 > sqrt(2);
+    let start = ray.start;
+    let end = add_points(ray.start, rescale_vec(unit_vec_deg(ray.angle), length));
+
+    start = to_canvas_space_point(view, start);
+    end = to_canvas_space_point(view, end);
+
+    view.ctx.beginPath();
+    view.ctx.moveTo(start.x, start.y);
+    view.ctx.lineTo(end.x, end.y);
+    style(view.ctx)
+    view.ctx.stroke();
+    style_default(view.ctx);
+}
+
+export function draw_poly(view: ViewPort2D, points: Point2D[], style: StyleSetter = fill_default) {
+    const start = to_canvas_space_point(view, points[0]);
+
+    view.ctx.beginPath();
+    view.ctx.moveTo(start.x, start.y);
+    points.forEach(p => {
+        p = to_canvas_space_point(view, p);
+        view.ctx.lineTo(p.x, p.y)
+    });
+    style(view.ctx);
+    view.ctx.closePath();
+    view.ctx.stroke();
+    view.ctx.fill();
+    style_default(view.ctx);
+}
+
+// Will automatically chose the shorter way round.
+export function draw_arc(view: ViewPort2D, start: Point2D, radius: number, angle_start: number, angle_end: number, style: StyleSetter = stroke_default) {
+    start = to_canvas_space_point(view, start);
+    radius = to_canvas_space_dist(view, radius);
+
+    // Flipped y-coordinate means we need to negate these.
+    angle_start = - angle_start
+    angle_end = - angle_end
+
+    const anticlockwise = (angle_end < angle_start);
+
+    view.ctx.beginPath();
+    view.ctx.arc(start.x, start.y, radius, deg_to_rad(angle_start), deg_to_rad(angle_end), anticlockwise);
+    style(view.ctx);
+    view.ctx.stroke();
+    stroke_default(view.ctx);
 }
 
 export class Interactive {
