@@ -29,7 +29,7 @@ let vect_b = wrap({ x: 3.0, y: 1.0 });
 let interact = new Interactive(view);
 
 function registerVector(vect) {
-    return interact.registerDraggable(
+    return interact.registerDraggable(10,
         (mouseXY) => in_circle({ center: vect.value, radius: rad }, mouseXY),
         (mouseXY) => {
             vect.value = mouseXY;

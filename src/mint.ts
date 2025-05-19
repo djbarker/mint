@@ -377,10 +377,24 @@ export function draw_right_angle(view: ViewPort2D, point: Point2D, size: number,
     style_default(view.ctx);
 }
 
+export class Draggable {
+    z: number;
+
+    is_dragging: boolean = false;
+    is_hovered: boolean = false;
+
+    constructor(z: number) {
+        this.z = z;
+    }
+}
+
 export class Interactive {
     view: ViewPort2D;
+
     is_dragging: boolean = false;
-    lock: boolean = false;
+
+    dragged: any | null = null;
+    hovered: any | null = null;
 
     constructor(view: ViewPort2D) {
         this.view = view;
@@ -400,30 +414,38 @@ export class Interactive {
         }
     }
 
-    registerDraggable(hit_test: (p: Point2D) => boolean, on_drag: (p: Point2D) => void) {
+    registerDraggable(z: number, hit_test: (p: Point2D) => boolean, on_drag: (p: Point2D) => void): Draggable {
         const canvas = this.view.ctx.canvas;
 
-        let out = {
-            is_dragging: false,
-            is_hovered: false,
-        }
+        let out = new Draggable(z);
 
         canvas.addEventListener("mousedown", this._toHandler((m) => {
-            if (hit_test(m) && !this.lock) {
+            if ((this.hovered == out) && (this.dragged == null)) {
                 out.is_dragging = true;
-                this.lock = true;
+                this.dragged = out;
             }
         }))
 
         canvas.addEventListener("mouseup", (e) => {
             out.is_dragging = false;
-            if (out.is_hovered) {
-                this.lock = false;
-            }
+            this.dragged = null;
         });
 
         canvas.addEventListener("mousemove", this._toHandler((m) => {
-            out.is_hovered = hit_test(m);
+            if (hit_test(m)) {
+                if (this.hovered == null) {
+                    out.is_hovered = true;
+                    this.hovered = out;
+                } else if (this.hovered.z < out.z) {
+                    this.hovered.is_hovered = false;
+                    out.is_hovered = true;
+                    this.hovered = out;
+                }
+            } else if (this.hovered == out) {
+                out.is_hovered = false;
+                this.hovered = null;
+            }
+
             if (out.is_dragging) {
                 on_drag(m);
             }
