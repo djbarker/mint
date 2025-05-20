@@ -1,9 +1,13 @@
-import { draw_circle, in_circle, draw_line_seg, Interactive, rotate_cw_deg, magnitude, wrap, style, ViewPort2D, arg_deg, rescale_vec } from "../../dist/mint.js";
+// @ts-check
+import { draw_circle, in_circle, draw_line_seg, Interactive, rotate_cw_deg, wrap, style, ViewPort2D, vec2, rescale_vec } from "../../dist/mint.js";
 
+/** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
+
+/** @type {CanvasRenderingContext2D} */
 let ctx = canvas.getContext("2d");
 
-const origin = { x: 0, y: 0 };
+const origin = vec2(0, 0);
 
 canvas.width = 400;
 canvas.height = 400;
@@ -11,24 +15,24 @@ canvas.height = 400;
 // The viewport to the canvas.
 let view = new ViewPort2D(
     ctx,
-    { x: -5, y: -5 },
-    { x: 5, y: 5 },
+    vec2(-5, -5),
+    vec2(5, 5),
 );
 
-let circ_a = wrap({ center: { x: 1.0, y: 2.0 }, radius: 0.25 });
-let circ_b = wrap({ center: { x: 1.0, y: -2.0 }, radius: 0.25 });
-let circ_c = wrap({ center: { x: -1.0, y: -2.0 }, radius: 0.25 });
-let circ_d = wrap({ center: { x: 0, y: 0 }, radius: 0.25 });
+let circ_a = wrap({ center: vec2(1.0, 2.0), radius: 0.25 });
+let circ_b = wrap({ center: vec2(1.0, -2.0), radius: 0.25 });
+let circ_c = wrap({ center: vec2(-1.0, -2.0), radius: 0.25 });
+let circ_d = wrap({ center: vec2(0, 0), radius: 0.25 });
 
 function forward(self, downstream) {
-    const mag = magnitude(downstream.value.center);
-    const arg = arg_deg(downstream.value.center);
+    const mag = downstream.value.center.mag;
+    const arg = downstream.value.center.arg;
     self.value.center = rescale_vec(rotate_cw_deg(downstream.value.center, 45), mag * 1.2);
 }
 
 function backward(self, upstream) {
-    const mag = magnitude(upstream.value.center);
-    const arg = arg_deg(upstream.value.center);
+    const mag = upstream.value.center.mag;
+    const arg = upstream.value.center.arg;
     self.value.center = rescale_vec(rotate_cw_deg(upstream.value.center, -45), mag / 1.2);
 }
 
@@ -70,10 +74,10 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // non-interactive calculations here:
-    const mag_a = magnitude(circ_a.value.center);
-    const mag_b = magnitude(circ_b.value.center);
-    const mag_c = magnitude(circ_c.value.center);
-    const mag_d = magnitude(circ_d.value.center);
+    const mag_a = circ_a.value.center.mag;
+    const mag_b = circ_b.value.center.mag;
+    const mag_c = circ_c.value.center.mag;
+    const mag_d = circ_d.value.center.mag;
 
     // draw it all
     draw_circle(view, { center: origin, radius: mag_a }, style({ fillcolor: "off", linewidth: 0.5, linecolor: "darkorange", }));
@@ -81,7 +85,7 @@ function draw() {
     draw_circle(view, { center: origin, radius: mag_c }, style({ fillcolor: "off", linewidth: 0.5, linecolor: "#239b56", }));
     draw_circle(view, { center: origin, radius: mag_d }, style({ fillcolor: "off", linewidth: 0.5, linecolor: "coral", }));
 
-    draw_line_seg(view, { start: { x: 0, y: 0 }, end: circ_a.value.center }, style({ linewidth: 2, linecolor: "darkorange" }));
+    draw_line_seg(view, { start: vec2(0, 0), end: circ_a.value.center }, style({ linewidth: 2, linecolor: "darkorange" }));
     draw_line_seg(view, { start: circ_a.value.center, end: circ_b.value.center }, style({ linewidth: 2, linecolor: "steelblue" }));
     draw_line_seg(view, { start: circ_b.value.center, end: circ_c.value.center }, style({ linewidth: 2, linecolor: "#239b56" }));
     draw_line_seg(view, { start: circ_c.value.center, end: circ_d.value.center }, style({ linewidth: 2, linecolor: "coral" }));
@@ -96,6 +100,7 @@ let interact = new Interactive(view);
 
 function registerCircle(circ) {
     interact.registerDraggable(
+        0,
         (mouseXY) => in_circle(circ.value, mouseXY),
         (mouseXY) => {
             circ.value.center = mouseXY;
