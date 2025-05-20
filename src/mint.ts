@@ -719,7 +719,7 @@ export class Value<T> {
         })
     }
 
-    set_recalc(inputs: [Value<any>], recalc: (self: Value<T>) => void): Value<T> {
+    set_recalc(inputs: Value<any>[], recalc: (self: Value<T>) => void): Value<T> {
         this._recalc = recalc;
 
         inputs.forEach(input => {
