@@ -7,6 +7,6 @@ python -m http.server
 
 the navigate to the HTML files under the example directories.
 
-> ![NOTE]
+> [!NOTE]
 > Make sure you have build the library before viewing the examples.
 > See the main [`README.md`](../README.md) for instructions.
