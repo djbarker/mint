@@ -387,19 +387,28 @@ export function draw_right_angle(view: ViewPort2D, point: Point2D, size: number,
 
 export type Offset = "++" | ".+" | "-+" | "+." | ".." | "-." | "+-" | ".-" | "--";
 
-export function draw_text(view: ViewPort2D, text: string, xy: Point2D) {
+export function text_default(ctx: CanvasRenderingContext2D) {
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 3;
+    ctx.fillStyle = "black";
+}
+
+export const font_default: string = "16px sans-serif";
+
+export function draw_text(view: ViewPort2D, text: string, xy: Point2D, offset: Offset = "..", font: string = font_default, style: StyleSetter = text_default) {
     xy = to_canvas_space_point(view, xy);
 
-    view.ctx.font = "16px sans-serif";
+    view.ctx.font = font;
     view.ctx.textAlign = "center";
     view.ctx.textBaseline = "middle";
-
-    view.ctx.strokeStyle = "white";
-    view.ctx.lineWidth = 3;
+    style(view.ctx);
     view.ctx.strokeText(text, xy.x, xy.y);
-
-    view.ctx.fillStyle = "black";
     view.ctx.fillText(text, xy.x, xy.y);
+    // Reset all properties
+    stroke_default(view.ctx);
+    view.ctx.font = font_default;
+    view.ctx.textAlign = "center";
+    view.ctx.textBaseline = "middle";
 }
 
 export class Draggable {

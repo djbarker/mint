@@ -114,17 +114,23 @@ function draw() {
     draw_ray(view, { start: origin, angle: 180 + arg_deg(vect_b.value) }, style({ linestyle: "dashed", linewidth: width_ray_b }));
 
     // Draw the rectangles.
-    const rect_1 = [origin, vect_a_axis, { x: vect_b_axis.x, y: vect_a_axis.y }, vect_b_axis];
+    const rect_1 = [vect_a_proj_axis, vect_a_axis, { x: vect_b_axis.x, y: vect_a_axis.y }, vect_b_axis, vect_b_proj_axis, { x: vect_b_proj_axis.x, y: vect_a_proj_axis.y }];
     draw_poly(view, rect_1, style({
-        fillcolor: col_r,
-        linecolor: "rgba(1, 1, 1, 0)",
+        fillcolor: "rgba(50, 218, 78, 0.3)",
+        linecolor: "rgba(0, 0, 0, 0)",
     }));
 
     const rect_2 = [origin, vect_a_proj_axis, { x: vect_b_proj_axis.x, y: vect_a_proj_axis.y }, vect_b_proj_axis];
     draw_poly(view, rect_2, style({
-        fillcolor: col_r,
-        linecolor: "rgba(1, 1, 1, 0)",
+        fillcolor: "rgba(202, 199, 29, 0.3)",
+        linecolor: "rgba(0, 0, 0, 0)",
     }));
+
+    // Annotate the rectangles.
+    const s1 = style({ linewidth: 0, fillcolor: "rgb(0, 100, 17)", linecolor: "off" });
+    const s2 = style({ linewidth: 0, fillcolor: "rgb(129, 127, 22)", linecolor: "off" });
+    draw_text(view, "|a|.|b|", add_points({ x: magnitude(vect_b.value), y: magnitude(vect_a.value) }, { x: -3 * rad, y: -2 * rad }), "..", "10pt 'PT Serif'", s1);
+    draw_text(view, "|a'|.|b'|", add_points({ x: magnitude(vect_b_proj), y: magnitude(vect_a_proj) }, { x: -3.2 * rad, y: -2 * rad }), "..", "10pt 'PT Serif'", s2);
 
     // Draw the radii.
     draw_arc(view, origin, magnitude(vect_a.value), arg_deg(vect_a.value), 90, style({ linestyle: "dashed", linecolor: col_a }));
@@ -165,16 +171,19 @@ function draw() {
     // Draw the projections.
     draw_circle(view, { center: vect_a_proj, radius: rad }, style({ linecolor: "none", fillcolor: col_a }));
     draw_circle(view, { center: vect_b_proj, radius: rad }, style({ linecolor: "none", fillcolor: col_b }));
-    // draw_circle(view, { center: vect_a_axis, radius: rad / 1.4 }, style({ linecolor: "none", fillcolor: col_a }));
-    // draw_circle(view, { center: vect_b_axis, radius: rad / 1.4 }, style({ linecolor: "none", fillcolor: col_b }));
 
     // Annotations go last.
-    draw_text(view, "a", expand_vec(vect_a.value, 2.5 * rad));
-    draw_text(view, "b", expand_vec(vect_b.value, 2.5 * rad));
+    draw_text(view, "a", expand_vec(vect_a.value, 2.5 * rad), "..", "16px 'PT Serif'");
+    draw_text(view, "b", expand_vec(vect_b.value, 2.5 * rad), "..", "16px 'PT Serif'");
     const vect_a_perp = sub_points(vect_a_proj, vect_a.value);
     const vect_b_perp = sub_points(vect_b_proj, vect_b.value);
-    draw_text(view, "a'", add_points(vect_a_proj, rescale_vec(vect_a_perp, 2.5 * rad)));
-    draw_text(view, "b'", add_points(vect_b_proj, rescale_vec(vect_b_perp, 2.5 * rad)));
+    draw_text(view, "a'", add_points(vect_a_proj, rescale_vec(vect_a_perp, 2.5 * rad)), "..", "16px 'PT Serif'");
+    draw_text(view, "b'", add_points(vect_b_proj, rescale_vec(vect_b_perp, 2.5 * rad)), "..", "16px 'PT Serif'");
+
+    draw_text(view, "|a|", { x: -2 * rad, y: magnitude(vect_a.value) }, "..", "16px 'PT Serif'");
+    draw_text(view, "|a'|", { x: -2 * rad, y: magnitude(vect_a_proj) }, "..", "16px 'PT Serif'");
+    draw_text(view, "|b|", { x: magnitude(vect_b.value), y: -2 * rad }, "..", "16px 'PT Serif'");
+    draw_text(view, "|b'|", { x: magnitude(vect_b_proj), y: -2 * rad }, "..", "16px 'PT Serif'");
 }
 
 
