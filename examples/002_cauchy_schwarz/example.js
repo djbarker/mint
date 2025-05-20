@@ -133,14 +133,14 @@ function draw() {
     draw_text(view, "|a'|.|b'|", add_points({ x: magnitude(vect_b_proj), y: magnitude(vect_a_proj) }, { x: -3.2 * rad, y: -2 * rad }), "..", "10pt 'PT Serif'", s2);
 
     // Draw the radii.
-    draw_arc(view, origin, magnitude(vect_a.value), arg_deg(vect_a.value), 90, style({ linestyle: "dashed", linecolor: col_a }));
-    draw_arc(view, origin, magnitude(vect_b.value), 0, arg_deg(vect_b.value), style({ linestyle: "dashed", linecolor: col_b }));
-    draw_arc(view, origin, magnitude(vect_a_proj), arg_deg(vect_a_proj), 90, style({ linestyle: "dashed", linecolor: col_a }));
-    draw_arc(view, origin, magnitude(vect_b_proj), 0, arg_deg(vect_b_proj), style({ linestyle: "dashed", linecolor: col_b }));
+    draw_arc(view, origin, magnitude(vect_a.value), arg_deg(vect_a.value), 90, style({ linestyle: "dotted", linecolor: col_a }));
+    draw_arc(view, origin, magnitude(vect_b.value), 0, arg_deg(vect_b.value), style({ linestyle: "dotted", linecolor: col_b }));
+    draw_arc(view, origin, magnitude(vect_a_proj), arg_deg(vect_a_proj), 90, style({ linestyle: "dotted", linecolor: col_a }));
+    draw_arc(view, origin, magnitude(vect_b_proj), 0, arg_deg(vect_b_proj), style({ linestyle: "dotted", linecolor: col_b }));
 
     // Draw the perpendiculars.
-    draw_line_seg(view, { start: vect_a.value, end: vect_a_proj }, style({ linestyle: "dashed", linecolor: col_a }));
-    draw_line_seg(view, { start: vect_b.value, end: vect_b_proj }, style({ linestyle: "dashed", linecolor: col_b }));
+    draw_line_seg(view, { start: vect_a.value, end: vect_a_proj }, style({ linestyle: "dashed", linewidth: 1.5, linecolor: col_a }));
+    draw_line_seg(view, { start: vect_b.value, end: vect_b_proj }, style({ linestyle: "dashed", linewidth: 1.5, linecolor: col_b }));
 
     draw_right_angle(view, vect_a_proj, 2 * rad, arg_deg(vect_a_proj), "-+", style({ linecolor: col_a }));
     draw_right_angle(view, vect_b_proj, 2 * rad, arg_deg(vect_b_proj), "--", style({ linecolor: col_b }));
