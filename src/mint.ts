@@ -26,9 +26,38 @@ export class Vect2D {
      * @param y The new y-component value.
      * @returns 
      */
-
     with_y(y: number): Vect2D {
         return vec2(this.x, y);
+    }
+
+    /**
+     * Map the y-component to a new value, and leave the x-coordinate unchanged.
+     * 
+     * @param f Function to map the y value.
+     * @returns 
+     */
+    map_y(f: (y: number) => number): Vect2D {
+        return vec2(this.x, f(this.y));
+    }
+
+    /**
+     * Map the x-component to a new value, and leave the y-coordinate unchanged.
+     * 
+     * @param f Function to map the x value.
+     * @returns 
+     */
+    map_x(f: (x: number) => number): Vect2D {
+        return vec2(f(this.x), this.y);
+    }
+
+    /**
+     * Map the vector to a new vector.
+     * 
+     * @param f Function to map the vector.
+     * @returns 
+     */
+    map(f: (v: Vect2D) => Vect2D): Vect2D {
+        return f(this)
     }
 
     /**
@@ -76,6 +105,16 @@ export class Vect2D {
  */
 export function vec2(x: number, y: number): Vect2D {
     return new Vect2D(x, y);
+}
+
+/**
+ * The componentwise absolute value of a vector.
+ * 
+ * @param v 
+ * @returns The vector abs; `b_i = Math.abs(a_i)`.
+ */
+export function abs(v: Vect2D): Vect2D {
+    return vec2(Math.abs(v.x), Math.abs(v.y));
 }
 
 /**
@@ -288,32 +327,87 @@ export function near_ray(ray: Ray2D, point: Vect2D, eps: number): boolean {
     return (rc_dot > 0) && (magnitude(c_perp) <= eps)
 }
 
+export class Rectangle {
+    lower: Vect2D;
+    upper: Vect2D;
+
+    constructor(lower: Vect2D, upper: Vect2D) {
+        this.lower = lower;
+        this.upper = upper;
+        if (this.lower.x > this.upper.x || this.lower.y > this.upper.y) {
+            console.log("Rectangle bounds flipped!");
+        }
+    }
+
+    /** The rectangle's size in each dimension. */
+    get size(): Vect2D {
+        return sub(this.upper, this.lower);
+    }
+
+    /** The rectangle's width. */
+    get width(): number {
+        return this.size.x;
+    }
+
+    /** The rectangle's height. */
+    get height(): number {
+        return this.size.y;
+    }
+
+    /**
+     * Confine the given vector to be in the rectangle.
+     * 
+     * @param v 
+     * @returns 
+     */
+    confine(v: Vect2D) {
+        const x = Math.min(this.upper.x, Math.max(this.lower.x, v.x));
+        const y = Math.min(this.upper.y, Math.max(this.lower.y, v.y));
+        return vec2(x, y);
+    }
+}
 
 /**
  * Convert our data space into canvas locations.
  */
 export class ViewPort2D {
     ctx: CanvasRenderingContext2D;
-    lower: Vect2D;
-    upper: Vect2D;
+
+    /** Coordinates spanned in data-space units. */
+    data: Rectangle;
+
+    /** Coordinates spanned in canvas units. */
+    canvas: Rectangle;
 
     constructor(
         ctx: CanvasRenderingContext2D,
-        lower: Vect2D,
-        upper: Vect2D) {
+        data: Rectangle,
+        canvas: Rectangle | null = null,
+    ) {
         this.ctx = ctx;
-        this.lower = lower;
-        this.upper = upper;
+        this.data = data;
+
+        if (canvas != null) {
+            this.canvas = canvas;
+        } else {
+            this.canvas = new Rectangle(
+                vec2(0, 0),
+                vec2(ctx.canvas.width, ctx.canvas.height),
+            );
+        }
+
+        // Flip the y-coordinate already.
+        // Careful: this also means the lower/upper interchange for the y-coordinate.
+        this.canvas = new Rectangle(
+            vec2(this.canvas.lower.x, this._flip_y(this.canvas.upper.y)),
+            vec2(this.canvas.upper.x, this._flip_y(this.canvas.lower.y)),
+        );
     }
 
-    /** The width in data-space units. */
-    get width(): number {
-        return this.upper.x - this.lower.x;
-    }
-
-    /** The height in data-space units. */
-    get height(): number {
-        return this.upper.y - this.lower.y;
+    /** The canvas has its origin at the top-left. */
+    _flip_y = (y: number) => {
+        // Important: full canvas height, not viewport.
+        return this.ctx.canvas.height - y;
     }
 
     /**
@@ -322,11 +416,13 @@ export class ViewPort2D {
      * @param point In data units.
      * @returns In canvas units.
      */
-    to_canvas_space_point(point: Vect2D): Vect2D {
-        let frac = div(sub(point, this.lower), sub(this.upper, this.lower));
-        let size = vec2(this.ctx.canvas.width, this.ctx.canvas.height);
-        let pixels = mul(frac, size);
-        pixels = pixels.with_y(size.y - pixels.y);
+    data_to_canvas(point: Vect2D): Vect2D {
+        let frac = div(sub(point, this.data.lower), this.data.size);
+        let pixels = frac
+            .map_y((y) => 1 - y)
+            .map((f) => mul(f, this.canvas.size))
+            .plus(this.canvas.lower);
+        ;
         return pixels;
     }
 
@@ -338,9 +434,9 @@ export class ViewPort2D {
      * @param dist In data units.
      * @returns In canvas units.
      */
-    to_canvas_space_dist(dist: number): number {
-        const frac = dist / (this.upper.x - this.lower.x);
-        const size = this.ctx.canvas.width;
+    data_to_canvas_dist(dist: number): number {
+        const frac = dist / this.data.width;
+        const size = this.canvas.width;
         const pixels = frac * size;
         return pixels;
     }
@@ -351,12 +447,23 @@ export class ViewPort2D {
      * @param pixels In canvas units.
      * @returns In data units.
      */
-    to_data_space_point(pixels: Vect2D): Vect2D {
-        const size = vec2(this.ctx.canvas.width, this.ctx.canvas.height);
-        pixels = pixels.with_y(size.y - pixels.y);
-        const frac = div(pixels, size);
-        const point = add(this.lower, mul(frac, sub(this.upper, this.lower)));
+    canvas_to_data(pixels: Vect2D): Vect2D {
+        pixels = pixels.minus(this.canvas.lower);
+        const frac = div(pixels, this.canvas.size).map_y((y) => 1 - y);
+        const point = mul(frac, this.data.size).plus(this.data.lower);
         return point;
+    }
+
+    with_clip(context: () => void) {
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.rect(this.canvas.lower.x, this.canvas.lower.y, this.canvas.width, this.canvas.height);
+        this.ctx.clip();
+
+        context();
+
+        style_default(this.ctx);
+        this.ctx.restore();
     }
 }
 
@@ -448,12 +555,13 @@ export function style(props: StyleProprs): (ctx: CanvasRenderingContext2D) => vo
 
 
 export function draw_circle(view: ViewPort2D, circle: Circle, style: StyleSetter = style_default) {
-    const center = view.to_canvas_space_point(circle.center);
-    const radius = view.to_canvas_space_dist(circle.radius);
+    const center = view.data_to_canvas(circle.center);
+    const radius = view.data_to_canvas_dist(circle.radius);
 
     view.ctx.beginPath();
     style(view.ctx);
     view.ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
+
     view.ctx.fill();
     view.ctx.stroke();
     style_default(view.ctx);
@@ -461,8 +569,8 @@ export function draw_circle(view: ViewPort2D, circle: Circle, style: StyleSetter
 
 
 export function draw_line_seg(view: ViewPort2D, seg: LineSegment2D, style: StyleSetter = stroke_default) {
-    const start = view.to_canvas_space_point(seg.start);
-    const end = view.to_canvas_space_point(seg.end);
+    const start = view.data_to_canvas(seg.start);
+    const end = view.data_to_canvas(seg.end);
 
     view.ctx.beginPath();
     view.ctx.moveTo(start.x, start.y);
@@ -487,12 +595,12 @@ export function draw_arrow_head(view: ViewPort2D, ray: Ray2D, size: number, angl
 }
 
 export function draw_ray(view: ViewPort2D, ray: Ray2D, style: StyleSetter = stroke_default) {
-    const length = Math.max(view.width, view.height) * 1.5; // NOTE: 1.5 > sqrt(2);
+    const length = Math.max(view.data.width, view.data.height) * 1.5; // NOTE: 1.5 > sqrt(2);
     let start = ray.start;
     let end = add(ray.start, rescale_vec(unit_vec_deg(ray.angle), length));
 
-    start = view.to_canvas_space_point(start);
-    end = view.to_canvas_space_point(end);
+    start = view.data_to_canvas(start);
+    end = view.data_to_canvas(end);
 
     view.ctx.beginPath();
     view.ctx.moveTo(start.x, start.y);
@@ -503,12 +611,12 @@ export function draw_ray(view: ViewPort2D, ray: Ray2D, style: StyleSetter = stro
 }
 
 export function draw_poly(view: ViewPort2D, points: Vect2D[], style: StyleSetter = fill_default) {
-    const start = view.to_canvas_space_point(points[0]);
+    const start = view.data_to_canvas(points[0]);
 
     view.ctx.beginPath();
     view.ctx.moveTo(start.x, start.y);
     points.forEach(p => {
-        p = view.to_canvas_space_point(p);
+        p = view.data_to_canvas(p);
         view.ctx.lineTo(p.x, p.y)
     });
     style(view.ctx);
@@ -520,8 +628,8 @@ export function draw_poly(view: ViewPort2D, points: Vect2D[], style: StyleSetter
 
 // Will automatically chose the shorter way round.
 export function draw_arc(view: ViewPort2D, start: Vect2D, radius: number, angle_start: number, angle_end: number, style: StyleSetter = stroke_default) {
-    start = view.to_canvas_space_point(start);
-    radius = view.to_canvas_space_dist(radius);
+    start = view.data_to_canvas(start);
+    radius = view.data_to_canvas_dist(radius);
 
     // Flipped y-coordinate means we need to negate these.
     angle_start = - angle_start
@@ -553,9 +661,9 @@ export function draw_right_angle(view: ViewPort2D, point: Vect2D, size: number, 
     b = add(point, rotate_cw_deg(b, angle));
     c = add(point, rotate_cw_deg(c, angle));
 
-    a = view.to_canvas_space_point(a);
-    b = view.to_canvas_space_point(b);
-    c = view.to_canvas_space_point(c);
+    a = view.data_to_canvas(a);
+    b = view.data_to_canvas(b);
+    c = view.data_to_canvas(c);
 
     view.ctx.beginPath();
     style(view.ctx);
@@ -578,7 +686,7 @@ export function text_default(ctx: CanvasRenderingContext2D) {
 export const font_default: string = "16px sans-serif";
 
 export function draw_text(view: ViewPort2D, text: string, xy: Vect2D, offset: Offset = "..", font: string = font_default, style: StyleSetter = text_default) {
-    xy = view.to_canvas_space_point(xy);
+    xy = view.data_to_canvas(xy);
 
     view.ctx.font = font;
     view.ctx.textAlign = "center";
@@ -625,7 +733,9 @@ export class Interactive {
             const rect = this.view.ctx.canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
-            const mouseXY = this.view.to_data_space_point(vec2(mouseX, mouseY));
+            const mouseXY = vec2(mouseX, mouseY)
+                .map((v) => this.view.canvas_to_data(v))
+                .map((v) => this.view.data.confine(v));
             func(mouseXY);
         }
     }
