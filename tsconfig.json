@@ -4,8 +4,10 @@
         "module": "ESNext",
         "declaration": true,
         "outDir": "dist",
+        "esModuleInterop": true,
         "strict": true,
-        "esModuleInterop": true
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
     },
     "include": [
         "src"
