@@ -189,7 +189,7 @@ export function magnitude(a: Vect2D): number {
 }
 
 /**
- * Set the length of a vector without changing its vector.
+ * Change the length of a vector without changing its direction.
  * 
  * @param v The vector whose direction to use.
  * @param vmag The length of the new vector.
