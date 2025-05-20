@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="104.17135mm"
+   height="103.74956mm"
+   viewBox="0 0 104.17135 103.74956"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1"
+     transform="translate(-45.767786,-50.157583)">
+    <path
+       style="fill:#5fd35f;stroke-width:14.5521"
+       d="M 149.93915,50.15758 C 89.998126,50.21219 71.283981,63.023813 54.604176,85.196742 37.924371,107.36967 49.979717,149.93915 49.979717,149.93915 c 0,0 42.466539,11.65289 64.564543,-4.98018 22.098,-16.63307 35.39583,-34.56019 35.39489,-94.80139 z"
+       id="path8" />
+    <path
+       style="fill:#2fa82f;fill-opacity:1;stroke:none;stroke-width:2;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+       d="M 51.815591,148.04455 147.88362,51.976507 c 0,0 2.78413,57.283083 -26.39055,83.838273 -29.174666,26.55519 -69.677479,12.22977 -69.677479,12.22977 z"
+       id="path16" />
+    <g
+       id="path13"
+       style="opacity:1">
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill:#ffffff;stroke-linecap:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="M 54.971388,144.90691 145.10115,54.971388"
+         id="path14" />
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill:#ffffff;stroke-linecap:round;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="m 144.39453,54.263672 c 0,0 -45.869042,44.324102 -68.401269,66.807988 -7.510742,7.49463 -21.727636,23.12756 -21.727636,23.12756 -0.390975,0.38995 -0.39187,1.023 -0.002,1.41406 0.389955,0.39098 1.023003,0.39187 1.414062,0.002 0,0 16.630672,-13.38009 24.141418,-20.87472 22.532235,-22.4839 65.987535,-69.060873 65.987535,-69.060873 0.39098,-0.389955 0.39187,-1.023003 0.002,-1.414062 -0.38995,-0.390975 -1.023,-0.39187 -1.41406,-0.002 z"
+         id="path15" />
+    </g>
+  </g>
+</svg>
