@@ -1,109 +1,261 @@
+/**
+ * A 2D vector.
+ */
+export class Vect2D {
+    x: number;
+    y: number;
 
-export interface Point2D {
-    x: number,
-    y: number,
-}
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
 
-export function add_points(a: Point2D, b: Point2D): Point2D {
-    return {
-        x: a.x + b.x,
-        y: a.y + b.y,
+    /**
+     * Construct a vector with the given x-component value, and the same y-component value.
+     * 
+     * @param x The new x-component value.
+     * @returns 
+     */
+    with_x(x: number): Vect2D {
+        return vec2(x, this.y);
+    }
+
+    /**
+     * Construct a vector with the same x-component value, and the given y-component value.
+     * 
+     * @param y The new y-component value.
+     * @returns 
+     */
+
+    with_y(y: number): Vect2D {
+        return vec2(this.x, y);
+    }
+
+    /**
+     * The (Euclidean) norm of the vector.
+     */
+    get mag(): number {
+        return magnitude(this);
+    }
+
+    /**
+     * The argument of the vector in degrees.
+     */
+    get arg(): number {
+        return arg_deg(this);
+    }
+
+    /**
+     * Add a vector to this.
+     */
+    plus(rhs: Vect2D): Vect2D {
+        return add(this, rhs);
+    }
+
+    /**
+     * Subtract a vector from this.
+     */
+    minus(rhs: Vect2D): Vect2D {
+        return sub(this, rhs);
+    }
+
+    /**
+     * The dot product of this with another vector.
+     */
+    dot(rhs: Vect2D): number {
+        return dot(this, rhs);
     }
 }
 
-export function sub_points(a: Point2D, b: Point2D): Point2D {
-    return {
-        x: a.x - b.x,
-        y: a.y - b.y,
-    }
+/**
+ * Make a new {@link Vect2D}.
+ * 
+ * @param x 
+ * @param y 
+ * @returns The {@link Vect2D} having `x` and `y` as components.
+ */
+export function vec2(x: number, y: number): Vect2D {
+    return new Vect2D(x, y);
 }
 
-export function div_points(a: Point2D, b: Point2D): Point2D {
-    return {
-        x: a.x / b.x,
-        y: a.y / b.y,
-    }
+/**
+ * Add two vectors componentwise.
+ * 
+ * @param a 
+ * @param b 
+ * @returns The vector sum; `a + b`.
+ */
+export function add(a: Vect2D, b: Vect2D): Vect2D {
+    return vec2(a.x + b.x, a.y + b.y);
 }
 
-export function mul_points(a: Point2D, b: Point2D): Point2D {
-    return {
-        x: a.x * b.x,
-        y: a.y * b.y,
-    }
+/**
+ * Subtract two vectors componentwise.
+ * 
+ * @param a 
+ * @param b 
+ * @returns The vector difference; `a - b`.
+ */
+export function sub(a: Vect2D, b: Vect2D): Vect2D {
+    return vec2(a.x - b.x, a.y - b.y);
 }
 
-export function dot(a: Point2D, b: Point2D): number {
+/**
+ * Divide the components of two vectors.
+ * 
+ * @param a 
+ * @param b 
+ * @returns The "vector division"; `c_i = a_i / b_i`.
+ */
+export function div(a: Vect2D, b: Vect2D): Vect2D {
+    return vec2(a.x / b.x, a.y / b.y);
+}
+
+/**
+ * Multiply the components of two vectors.
+ * 
+ * @param a 
+ * @param b 
+ * @returns The "vector multiplication"; `c_i = a_i * b_i`.
+ */
+export function mul(a: Vect2D, b: Vect2D): Vect2D {
+    return vec2(a.x * b.x, a.y * b.y);
+}
+
+/**
+ * The scalar product of two vectors.
+ * 
+ * @param a 
+ * @param b 
+ * @returns The dot product.
+ */
+export function dot(a: Vect2D, b: Vect2D): number {
     return a.x * b.x + a.y * b.y;
 }
 
+/**
+ * Convert an angle in degrees to radians.
+ * 
+ * @param angle In degrees.
+ * @returns In radians.
+ */
 export function deg_to_rad(angle: number): number {
     return angle * Math.PI / 180.0;
 }
 
-
+/**
+ * Convert an angle in radians to degrees.
+ * 
+ * @param angle In radians.
+ * @returns In degrees.
+ */
 export function rad_to_deg(angle: number): number {
     return angle * 180.0 / Math.PI;
 }
 
-
-export function rotate_cw_deg(a: Point2D, angle: number) {
+/**
+ * Rotate a {@link Vect2D} clockwise by the specified angle.
+ * 
+ * @param a The vector to rotate.
+ * @param angle The angle to rotate by (negative for anticlockwise).
+ * @returns The rotated vector.
+ */
+export function rotate_cw_deg(a: Vect2D, angle: number): Vect2D {
     const angle_rad = deg_to_rad(angle);
-    return {
-        x: a.x * Math.cos(angle_rad) - a.y * Math.sin(angle_rad),
-        y: a.x * Math.sin(angle_rad) + a.y * Math.cos(angle_rad),
-    }
+    return vec2(
+        a.x * Math.cos(angle_rad) - a.y * Math.sin(angle_rad),
+        a.x * Math.sin(angle_rad) + a.y * Math.cos(angle_rad),
+    );
 }
 
-// Return the arugment (clockwise angle from x-axis) in degrees.
-export function arg_deg(a: Point2D): number {
+/**
+ * Return the argument of a {@link Vect2D}.
+ * 
+ * @param a 
+ * @returns The clockwise angle from the x-axis in degrees.
+ */
+export function arg_deg(a: Vect2D): number {
     return rad_to_deg(Math.atan2(a.y, a.x));
 }
 
-export function magnitude(a: Point2D): number {
+/**
+ * The magnitude of a {@link Vect2D}.
+ * 
+ * @param a 
+ * @returns The Euclidean norm of the vector.
+ */
+export function magnitude(a: Vect2D): number {
     return Math.sqrt(dot(a, a));
 }
 
-export function rescale_vec(v: Point2D, vmag: number): Point2D {
+/**
+ * Set the length of a vector without changing its vector.
+ * 
+ * @param v The vector whose direction to use.
+ * @param vmag The length of the new vector.
+ * @returns A vector of length {@link vmag} pointing in the direction of {@link v}.
+ */
+export function rescale_vec(v: Vect2D, vmag: number): Vect2D {
     const mult = vmag / magnitude(v);
-    return {
-        x: mult * v.x,
-        y: mult * v.y,
-    };
+    return vec2(
+        mult * v.x,
+        mult * v.y,
+    );
 }
 
-export function expand_vec(v: Point2D, len: number): Point2D {
+/**
+ * Add or subtract to the length of a vector without changing its direction.
+ * 
+ * @param v The vector whose direction to use.
+ * @param len The length to change the length of vector by (can be negative).
+ * @returns A vector of length ({@link v}.mag + {@link len}) pointing in the direction of {@link v}.
+ */
+export function expand_vec(v: Vect2D, len: number): Vect2D {
     return rescale_vec(v, magnitude(v) + len);
 }
 
-// Returns a unit vector with the given argument (clockwise angle from the x-axis).
+
+/**
+ * Returns a unit vector with the given argument.
+ * 
+ * @param angle In degrees.
+ * @returns A unit vector with the given argument.
+ */
 export function unit_vec_deg(angle: number) {
     const rad = deg_to_rad(angle);
-    return {
-        x: Math.cos(rad),
-        y: Math.sin(rad),
-    }
+    return vec2(
+        Math.cos(rad),
+        Math.sin(rad),
+    );
 }
 
 export interface Circle {
-    center: Point2D,
+    center: Vect2D,
     radius: number,
 }
 
-export function in_circle(c: Circle, p: Point2D): boolean {
+/**
+ * Hit-test for a {@link Circle}.
+ * 
+ * @param c The circle to test.
+ * @param p The test point.
+ * @returns True iff {@link p} is inside {@link c}.
+ */
+export function in_circle(c: Circle, p: Vect2D): boolean {
     let dx = p.x - c.center.x;
     let dy = p.y - c.center.y;
     return (dx * dx + dy * dy) <= c.radius * c.radius
 }
 
 export interface LineSegment2D {
-    start: Point2D,
-    end: Point2D,
+    start: Vect2D,
+    end: Vect2D,
 }
 
-export function make_segment(center_xy: Point2D, length: number, angle_deg: number): LineSegment2D {
+export function make_segment(center_xy: Vect2D, length: number, angle_deg: number): LineSegment2D {
     const offset = rescale_vec(unit_vec_deg(angle_deg), length / 2.0);
-    const start = add_points(center_xy, rotate_cw_deg(offset, 180));
-    const end = add_points(center_xy, offset);
+    const start = add(center_xy, rotate_cw_deg(offset, 180));
+    const end = add(center_xy, offset);
     return {
         start: start,
         end: end,
@@ -111,28 +263,31 @@ export function make_segment(center_xy: Point2D, length: number, angle_deg: numb
 }
 
 export interface Ray2D {
-    start: Point2D,
+    start: Vect2D,
     angle: number,
 }
 
-export function near_ray(ray: Ray2D, point: Point2D, eps: number): boolean {
+export function near_ray(ray: Ray2D, point: Vect2D, eps: number): boolean {
     const r_unit = unit_vec_deg(ray.angle);
-    const rc_dot = dot(r_unit, sub_points(point, ray.start))
+    const rc_dot = dot(r_unit, sub(point, ray.start))
     const c_para = rescale_vec(r_unit, rc_dot);
-    const c_perp = sub_points(point, c_para);
+    const c_perp = sub(point, c_para);
     return (rc_dot > 0) && (magnitude(c_perp) <= eps)
 }
 
-// Convert our data space into canvas locations.
+
+/**
+ * Convert our data space into canvas locations.
+ */
 export class ViewPort2D {
     ctx: CanvasRenderingContext2D;
-    lower: Point2D;
-    upper: Point2D;
+    lower: Vect2D;
+    upper: Vect2D;
 
     constructor(
         ctx: CanvasRenderingContext2D,
-        lower: Point2D,
-        upper: Point2D) {
+        lower: Vect2D,
+        upper: Vect2D) {
         this.ctx = ctx;
         this.lower = lower;
         this.upper = upper;
@@ -147,37 +302,51 @@ export class ViewPort2D {
     get height(): number {
         return this.upper.y - this.lower.y;
     }
-}
 
-export function to_canvas_space_point(view: ViewPort2D, point: Point2D): Point2D {
-    let frac = div_points(sub_points(point, view.lower), sub_points(view.upper, view.lower));
-    let size = { x: view.ctx.canvas.width, y: view.ctx.canvas.height };
-    let pixels = mul_points(frac, size);
-    pixels = {
-        x: pixels.x,
-        y: size.y - pixels.y,
+    /**
+     * Convert a location in data-space units to a location on the canvas.
+     * 
+     * @param point In data units.
+     * @returns In canvas units.
+     */
+    to_canvas_space_point(point: Vect2D): Vect2D {
+        let frac = div(sub(point, this.lower), sub(this.upper, this.lower));
+        let size = vec2(this.ctx.canvas.width, this.ctx.canvas.height);
+        let pixels = mul(frac, size);
+        pixels = pixels.with_y(size.y - pixels.y);
+        return pixels;
     }
-    return pixels;
-}
 
-// NOTE: Assumes the canvas's aspect ratio matches the viewport's.
-export function to_canvas_space_dist(view: ViewPort2D, dist: number): number {
-    const frac = dist / (view.upper.x - view.lower.x);
-    const size = view.ctx.canvas.width;
-    const pixels = frac * size;
-    return pixels;
-}
-
-export function to_data_space_point(view: ViewPort2D, pixels: Point2D): Point2D {
-    const size = { x: view.ctx.canvas.width, y: view.ctx.canvas.height };
-    pixels = {
-        x: pixels.x,
-        y: size.y - pixels.y,
+    /**
+     * Convert a distance in data-space units to a distance in the canvas's units.
+     * 
+     * Note: Assumes the canvas's aspect ratio matches the viewport's.
+     * 
+     * @param dist In data units.
+     * @returns In canvas units.
+     */
+    to_canvas_space_dist(dist: number): number {
+        const frac = dist / (this.upper.x - this.lower.x);
+        const size = this.ctx.canvas.width;
+        const pixels = frac * size;
+        return pixels;
     }
-    const frac = div_points(pixels, size);
-    const point = add_points(view.lower, mul_points(frac, sub_points(view.upper, view.lower)));
-    return point;
+
+    /**
+     * Convert a location in canvas units to a location in our data-space units.
+     * 
+     * @param pixels In canvas units.
+     * @returns In data units.
+     */
+    to_data_space_point(pixels: Vect2D): Vect2D {
+        const size = vec2(this.ctx.canvas.width, this.ctx.canvas.height);
+        pixels = pixels.with_y(size.y - pixels.y);
+        const frac = div(pixels, size);
+        const point = add(this.lower, mul(frac, sub(this.upper, this.lower)));
+        return point;
+    }
 }
+
 
 export function stroke_default(ctx: CanvasRenderingContext2D) {
     fill_off(ctx);
@@ -266,8 +435,8 @@ export function style(props: StyleProprs): (ctx: CanvasRenderingContext2D) => vo
 
 
 export function draw_circle(view: ViewPort2D, circle: Circle, style: StyleSetter = style_default) {
-    const center = to_canvas_space_point(view, circle.center);
-    const radius = to_canvas_space_dist(view, circle.radius);
+    const center = view.to_canvas_space_point(circle.center);
+    const radius = view.to_canvas_space_dist(circle.radius);
 
     view.ctx.beginPath();
     style(view.ctx);
@@ -279,8 +448,8 @@ export function draw_circle(view: ViewPort2D, circle: Circle, style: StyleSetter
 
 
 export function draw_line_seg(view: ViewPort2D, seg: LineSegment2D, style: StyleSetter = stroke_default) {
-    const start = to_canvas_space_point(view, seg.start);
-    const end = to_canvas_space_point(view, seg.end);
+    const start = view.to_canvas_space_point(seg.start);
+    const end = view.to_canvas_space_point(seg.end);
 
     view.ctx.beginPath();
     view.ctx.moveTo(start.x, start.y);
@@ -298,8 +467,8 @@ export function draw_arrow_head(view: ViewPort2D, ray: Ray2D, size: number, angl
     const head2 = rotate_cw_deg(head1, -2 * gamma);
     const points = [
         ray.start,
-        add_points(ray.start, head1),
-        add_points(ray.start, head2),
+        add(ray.start, head1),
+        add(ray.start, head2),
     ];
     draw_poly(view, points, style);
 }
@@ -307,10 +476,10 @@ export function draw_arrow_head(view: ViewPort2D, ray: Ray2D, size: number, angl
 export function draw_ray(view: ViewPort2D, ray: Ray2D, style: StyleSetter = stroke_default) {
     const length = Math.max(view.width, view.height) * 1.5; // NOTE: 1.5 > sqrt(2);
     let start = ray.start;
-    let end = add_points(ray.start, rescale_vec(unit_vec_deg(ray.angle), length));
+    let end = add(ray.start, rescale_vec(unit_vec_deg(ray.angle), length));
 
-    start = to_canvas_space_point(view, start);
-    end = to_canvas_space_point(view, end);
+    start = view.to_canvas_space_point(start);
+    end = view.to_canvas_space_point(end);
 
     view.ctx.beginPath();
     view.ctx.moveTo(start.x, start.y);
@@ -320,13 +489,13 @@ export function draw_ray(view: ViewPort2D, ray: Ray2D, style: StyleSetter = stro
     style_default(view.ctx);
 }
 
-export function draw_poly(view: ViewPort2D, points: Point2D[], style: StyleSetter = fill_default) {
-    const start = to_canvas_space_point(view, points[0]);
+export function draw_poly(view: ViewPort2D, points: Vect2D[], style: StyleSetter = fill_default) {
+    const start = view.to_canvas_space_point(points[0]);
 
     view.ctx.beginPath();
     view.ctx.moveTo(start.x, start.y);
     points.forEach(p => {
-        p = to_canvas_space_point(view, p);
+        p = view.to_canvas_space_point(p);
         view.ctx.lineTo(p.x, p.y)
     });
     style(view.ctx);
@@ -337,9 +506,9 @@ export function draw_poly(view: ViewPort2D, points: Point2D[], style: StyleSette
 }
 
 // Will automatically chose the shorter way round.
-export function draw_arc(view: ViewPort2D, start: Point2D, radius: number, angle_start: number, angle_end: number, style: StyleSetter = stroke_default) {
-    start = to_canvas_space_point(view, start);
-    radius = to_canvas_space_dist(view, radius);
+export function draw_arc(view: ViewPort2D, start: Vect2D, radius: number, angle_start: number, angle_end: number, style: StyleSetter = stroke_default) {
+    start = view.to_canvas_space_point(start);
+    radius = view.to_canvas_space_dist(radius);
 
     // Flipped y-coordinate means we need to negate these.
     angle_start = - angle_start
@@ -361,19 +530,19 @@ export function draw_arc(view: ViewPort2D, start: Point2D, radius: number, angle
 
 export type Quadrant = "++" | "+-" | "--" | "-+";
 
-export function draw_right_angle(view: ViewPort2D, point: Point2D, size: number, angle: number, quadrant: Quadrant, style: StyleSetter = stroke_default) {
+export function draw_right_angle(view: ViewPort2D, point: Vect2D, size: number, angle: number, quadrant: Quadrant, style: StyleSetter = stroke_default) {
     const sx = (quadrant == "++" || quadrant == "+-") ? 1 : -1;
     const sy = (quadrant == "++" || quadrant == "-+") ? 1 : -1;
-    let a = { x: size * sx, y: 0 };
-    let b = { x: size * sx, y: size * sy };
-    let c = { x: 0, y: size * sy };
-    a = add_points(point, rotate_cw_deg(a, angle));
-    b = add_points(point, rotate_cw_deg(b, angle));
-    c = add_points(point, rotate_cw_deg(c, angle));
+    let a = vec2(size * sx, 0);
+    let b = vec2(size * sx, size * sy);
+    let c = vec2(0, size * sy);
+    a = add(point, rotate_cw_deg(a, angle));
+    b = add(point, rotate_cw_deg(b, angle));
+    c = add(point, rotate_cw_deg(c, angle));
 
-    a = to_canvas_space_point(view, a);
-    b = to_canvas_space_point(view, b);
-    c = to_canvas_space_point(view, c);
+    a = view.to_canvas_space_point(a);
+    b = view.to_canvas_space_point(b);
+    c = view.to_canvas_space_point(c);
 
     view.ctx.beginPath();
     style(view.ctx);
@@ -395,8 +564,8 @@ export function text_default(ctx: CanvasRenderingContext2D) {
 
 export const font_default: string = "16px sans-serif";
 
-export function draw_text(view: ViewPort2D, text: string, xy: Point2D, offset: Offset = "..", font: string = font_default, style: StyleSetter = text_default) {
-    xy = to_canvas_space_point(view, xy);
+export function draw_text(view: ViewPort2D, text: string, xy: Vect2D, offset: Offset = "..", font: string = font_default, style: StyleSetter = text_default) {
+    xy = view.to_canvas_space_point(xy);
 
     view.ctx.font = font;
     view.ctx.textAlign = "center";
@@ -438,17 +607,17 @@ export class Interactive {
     }
 
     // This automatically converts the mouse event in canvas coordinates to data-space coordinates.
-    _toHandler(func: (mouseXY: Point2D) => void): (e: MouseEvent) => void {
+    _toHandler(func: (mouseXY: Vect2D) => void): (e: MouseEvent) => void {
         return (e: MouseEvent) => {
             const rect = this.view.ctx.canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
-            const mouseXY = to_data_space_point(this.view, { x: mouseX, y: mouseY });
+            const mouseXY = this.view.to_data_space_point(vec2(mouseX, mouseY));
             func(mouseXY);
         }
     }
 
-    registerDraggable(z: number, hit_test: (p: Point2D) => boolean, on_drag: (p: Point2D) => void): Draggable {
+    registerDraggable(z: number, hit_test: (p: Vect2D) => boolean, on_drag: (p: Vect2D) => void): Draggable {
         const canvas = this.view.ctx.canvas;
 
         let out = new Draggable(z);
@@ -488,17 +657,17 @@ export class Interactive {
         return out;
     }
 
-    addOnMouseDown(func: (mouseXY: Point2D) => void) {
+    addOnMouseDown(func: (mouseXY: Vect2D) => void) {
         this.view.ctx.canvas.addEventListener("mousedown", this._toHandler(func));
     }
 
-    addOnMouseUp(func: (mouseXY: Point2D) => void) {
+    addOnMouseUp(func: (mouseXY: Vect2D) => void) {
         this.view.ctx.canvas.addEventListener("mouseup", this._toHandler(func));
         // this.view.ctx.canvas.addEventListener("mouseleave", this._toHandler(func));
     }
 
-    addOnMouseDrag(func: (mouseXY: Point2D) => void) {
-        const func_gated = (mXY: Point2D) => {
+    addOnMouseDrag(func: (mouseXY: Vect2D) => void) {
+        const func_gated = (mXY: Vect2D) => {
             if (this.is_dragging) {
                 func(mXY);
             }
@@ -506,7 +675,7 @@ export class Interactive {
         this.view.ctx.canvas.addEventListener("mousemove", this._toHandler(func_gated));
     }
 
-    addOnMouseMove(func: (mouseXY: Point2D) => void) {
+    addOnMouseMove(func: (mouseXY: Vect2D) => void) {
         this.view.ctx.canvas.addEventListener("mousemove", this._toHandler(func));
     }
 }
