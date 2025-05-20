@@ -262,11 +262,24 @@ export function make_segment(center_xy: Vect2D, length: number, angle_deg: numbe
     }
 }
 
+/**
+ * A ray in 2D.
+ */
 export interface Ray2D {
+    /** The origin point of the ray. */
     start: Vect2D,
+    /** The argument, in degrees. */
     angle: number,
 }
 
+/**
+ * Are we close to the given {@link Ray2D}?
+ * 
+ * @param ray The ray.
+ * @param point The point to test for closeness.
+ * @param eps Perpendicular distance to the ray which will count as "close".
+ * @returns True if {@link point} is within {@link eps} of the ray.
+ */
 export function near_ray(ray: Ray2D, point: Vect2D, eps: number): boolean {
     const r_unit = unit_vec_deg(ray.angle);
     const rc_dot = dot(r_unit, sub(point, ray.start))
@@ -293,12 +306,12 @@ export class ViewPort2D {
         this.upper = upper;
     }
 
-    // The width in data-space units.
+    /** The width in data-space units. */
     get width(): number {
         return this.upper.x - this.lower.x;
     }
 
-    // The height in data-space units.
+    /** The height in data-space units. */
     get height(): number {
         return this.upper.y - this.lower.y;
     }
