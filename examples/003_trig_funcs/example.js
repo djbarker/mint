@@ -143,6 +143,9 @@ function draw(anim) {
     view_c.lineTo(vec2(0, xval));
     ctx.stroke();
 
+    draw_circle(view_g, { center: vec2(theta, xval), radius: 0.05 }, style({ fillcolor: cos_col }));
+    draw_circle(view_g, { center: vec2(theta, yval), radius: 0.05 }, style({ fillcolor: sin_col }));
+
     // Some final annotations
     draw_text(view_g, "sin(θ)", vec2(0.75 * 2 * Math.PI, -1.1), "..", font_default, style({ linecolor: "none", fillcolor: sin_col }));
     draw_text(view_g, "cos(θ)", vec2(0.50 * 2 * Math.PI, -1.1), "..", font_default, style({ linecolor: "none", fillcolor: cos_col }));
