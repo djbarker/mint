@@ -1,6 +1,6 @@
 // @ts-check
 
-import { rect, wrap, ViewPort2D, draw_circle, vec2, draw_line, draw_axis_grid, style, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, draw_arrow_head, draw_vector, rescale_vec, draw_v_line, draw_text, draw_axes, near_line, font_default, unit_vec_deg } from "../../dist/mint.js";
+import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, style, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, draw_arrow_head, draw_vector, rescale_vec, draw_v_line, draw_text, draw_axes, near_line, font_default, unit_vec_deg } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
@@ -104,15 +104,18 @@ function draw() {
     // Draw between the axes
     ctx.beginPath();
     style({ linestyle: "dashed", linecolor: sin_col })(ctx);
-    view_c.moveTo(vec2(xval, yval));
-    view_g.lineTo(vec2(theta, yval));
+    view_g.moveTo(vec2(theta, yval));
+    view_c.lineTo(vec2(xval, yval));
     ctx.stroke();
 
     ctx.beginPath();
     style({ linestyle: "dashed", linecolor: cos_col })(ctx);
-    view_c.moveTo(vec2(0, 0));
-    view_c.arc(vec2(0, 0), Math.abs(xval), [xval > 0 ? 0 : 180, 90 * Math.sign(xval)]);
-    view_g.lineTo(vec2(theta, xval));
+    view_c.moveTo(vec2(0, xval));
+    view_c.arc(vec2(0, 0), Math.abs(xval), [90 * Math.sign(xval), xval > 0 ? 0 : 180], false);
+    ctx.stroke();
+    ctx.beginPath();
+    view_g.moveTo(vec2(theta, xval));
+    view_c.lineTo(vec2(0, xval));
     ctx.stroke();
 
     // Some final annotations
