@@ -57,12 +57,13 @@ function draw(anim) {
             if (theta > Math.PI * 2) {
                 theta -= Math.PI * 2
             }
+
+            // Check if any draggables have moved under the mouse.
+            int_c.updateHovered();
+            int_g.updateHovered();
         }
     }
 
-    // Check if any draggables have moved under the mouse.
-    int_c.updateHovered();
-    int_g.updateHovered();
 
     // Reset the canvas for redrawing.
     ctx.clearRect(0, 0, canvas.width, canvas.height);
