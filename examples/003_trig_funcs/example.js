@@ -11,6 +11,9 @@ let ctx = canvas.getContext("2d");
 /** @type {HTMLInputElement} */
 const checkbox = document.getElementById("theCheckbox");
 
+/** @type {HTMLInputElement} */
+const slider = document.getElementById("theSlider");
+
 const view_c = new ViewPort2D(ctx,
     rect([-1.2, 1.2], [-1.2, 1.2]),
     rect([20, 320], [50, 350]),
@@ -18,11 +21,10 @@ const view_c = new ViewPort2D(ctx,
 
 const view_g = new ViewPort2D(ctx,
     rect([-0.05, 2 * Math.PI], [-1.2, 1.2]),
-    rect([340, 820], [50, 350]),
+    rect([360, 840], [50, 350]),
 )
 
 let theta = deg_to_rad(30);
-const omega = 2 * Math.PI / 10; // 5 seconds per rotation
 
 const int_c = new Interactive(view_c);
 const int_g = new Interactive(view_g);
@@ -50,6 +52,8 @@ function draw(anim) {
 
     // Update theta based on time if neither dragging nor static.
     if (anim) {
+        const omega = 2 * Math.PI / slider.value;
+
         if (theta_c_int.is_dragged || theta_g_int.is_dragged) {
             anim.rezero();
         } else {
