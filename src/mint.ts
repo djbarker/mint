@@ -386,6 +386,11 @@ export class Rectangle {
         return this.size.y;
     }
 
+    /** The rectangle's aspect ratio. */
+    get aspect(): number {
+        return this.height / this.width;
+    }
+
     /**
      * Confine the given vector to be in the rectangle.
      * 
@@ -398,6 +403,26 @@ export class Rectangle {
         return vec2(x, y);
     }
 }
+
+
+/**
+ * Construct a {@link Rectangle} from the x & y ranges.
+ * 
+ * This contrasts to the {@link Rectangle} constructor which takes the lower xy, and the upper xy coordinates.
+ * 
+ * @param x_range Tuple of `[xmin, xmax]`.
+ * @param y_range Tuple of `[ymin, ymax]`.
+ * @returns 
+ */
+export function rect(x_range: [number, number], y_range: [number, number]): Rectangle {
+    return new Rectangle(vec2(x_range[0], y_range[0]), vec2(x_range[1], y_range[1]));
+}
+
+
+export function in_rect(rect: Rectangle, p: Vect2D): boolean {
+    return (rect.lower.x <= p.x) && (p.x <= rect.upper.x) && (rect.lower.y <= p.y) && (p.y <= rect.upper.y);
+}
+
 
 /**
  * Convert our data space into canvas locations.
