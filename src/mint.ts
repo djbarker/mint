@@ -928,18 +928,24 @@ export function draw_axes(view: ViewPort2D, xlabel: string | null = null, ylabel
 
 export class Draggable {
 
-    is_dragging: boolean = false;
+    is_dragged: boolean = false;
     is_hovered: boolean = false;
 
-    constructor(z: number) {
-        this.z = z;
+    hit_test: (p: Vect2D) => boolean;
+    on_drag: (p: Vect2D) => void;
+
+    constructor(hit_test: (p: Vect2D) => boolean, on_drag: (p: Vect2D) => void) {
+        this.hit_test = hit_test;
+        this.on_drag = on_drag;
     }
 }
 
 export class Interactive {
     view: ViewPort2D;
 
-    is_dragging: boolean = false;
+    is_dragged: boolean = false;
+
+    draggables: Draggable[] = [];
 
     dragged: any | null = null;
     hovered: any | null = null;
@@ -947,8 +953,23 @@ export class Interactive {
     constructor(view: ViewPort2D) {
         this.view = view;
 
-        view.ctx.canvas.addEventListener("mousedown", (e) => { this.is_dragging = true; });
-        view.ctx.canvas.addEventListener("mouseup", (e) => { this.is_dragging = false; });
+        view.ctx.canvas.addEventListener("mousedown", this._toHandler((m) => {
+            this._updateDragged(m);
+            this.is_dragged = true;
+        }));
+
+        view.ctx.canvas.addEventListener("mouseup", this._toHandler((m) => {
+            this.is_dragged = false;
+            this._resetDragged();
+        }));
+
+        view.ctx.canvas.addEventListener("mousemove", this._toHandler((m) => {
+            this._updateHovered(m);
+
+            if (this.dragged != null) {
+                this.dragged.on_drag(m);
+            }
+        }));
     }
 
     // This automatically converts the mouse event in canvas coordinates to data-space coordinates.
@@ -957,51 +978,75 @@ export class Interactive {
             const rect = this.view.ctx.canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
-            const mouseXY = vec2(mouseX, mouseY)
+            const mouseXY_canvas = vec2(mouseX, mouseY);
+
+            if (!in_rect(this.view.canvas, mouseXY_canvas)) {
+                return;
+            }
+
+            const mouseXY_data = mouseXY_canvas
                 .map((v) => this.view.canvas_to_data(v))
                 .map((v) => this.view.data.confine(v));
-            func(mouseXY);
+            func(mouseXY_data);
         }
     }
 
-    registerDraggable(z: number, hit_test: (p: Vect2D) => boolean, on_drag: (p: Vect2D) => void): Draggable {
-        const canvas = this.view.ctx.canvas;
+    _resetHovered() {
+        if (this.hovered != null) {
+            this.hovered.is_hovered = false;
+        }
+        this.hovered = null;
+    }
 
-        let out = new Draggable(z);
+    _resetDragged() {
+        if (this.dragged != null) {
+            this.dragged.is_dragged = false;
+        }
+        this.dragged = null;
+    }
 
-        canvas.addEventListener("mousedown", this._toHandler((m) => {
-            if ((this.hovered == out) && (this.dragged == null)) {
-                out.is_dragging = true;
-                this.dragged = out;
+    /**
+     * Check & set the hover status of the {@link Draggable}s.
+     * 
+     * Note: Only one can be hovered at once. 
+     *       Precendence goes to the earlier registered Draggable.
+     * 
+     * @param m The point to check.
+     */
+    _updateHovered(m: Vect2D) {
+        this._resetHovered();
+        for (const d of this.draggables) {
+            d.is_hovered = false;
+            if (d.hit_test(m) && (this.hovered == null)) {
+                this.hovered = d;
+                d.is_hovered = true;
             }
-        }))
+        }
+    }
 
-        canvas.addEventListener("mouseup", (e) => {
-            out.is_dragging = false;
-            this.dragged = null;
-        });
-
-        canvas.addEventListener("mousemove", this._toHandler((m) => {
-            if (hit_test(m)) {
-                if (this.hovered == null) {
-                    out.is_hovered = true;
-                    this.hovered = out;
-                } else if (this.hovered.z < out.z) {
-                    this.hovered.is_hovered = false;
-                    out.is_hovered = true;
-                    this.hovered = out;
-                }
-            } else if (this.hovered == out) {
-                out.is_hovered = false;
-                this.hovered = null;
+    /**
+     * Check & set the drag status of the {@link Draggable}s.
+     * 
+     * Note: Only one can be dragged at once. 
+     *       Precendence goes to the earlier registered Draggable.
+     * 
+     * @param m The point to check.
+     */
+    _updateDragged(m: Vect2D) {
+        this._resetDragged();
+        for (const d of this.draggables) {
+            d.is_dragged = false;
+            if (d.hit_test(m) && (this.dragged == null)) {
+                this.dragged = d;
+                d.is_dragged = true;
             }
+        }
+    }
 
-            if (out.is_dragging) {
-                on_drag(m);
-            }
-        }));
-
-        return out;
+    registerDraggable(hit_test: (p: Vect2D) => boolean, on_drag: (p: Vect2D) => void): Draggable {
+        let draggable = new Draggable(hit_test, on_drag);
+        this.draggables.push(draggable);
+        return draggable;
     }
 
     addOnMouseDown(func: (mouseXY: Vect2D) => void) {
@@ -1015,7 +1060,7 @@ export class Interactive {
 
     addOnMouseDrag(func: (mouseXY: Vect2D) => void) {
         const func_gated = (mXY: Vect2D) => {
-            if (this.is_dragging) {
+            if (this.is_dragged) {
                 func(mXY);
             }
         };
