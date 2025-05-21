@@ -985,6 +985,7 @@ export class Interactive {
             const mouseXY_canvas = vec2(mouseX, mouseY);
 
             if (!in_rect(this.view.canvas, mouseXY_canvas)) {
+                this.prev_XY = undefined;
                 return;
             }
 
