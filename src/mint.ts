@@ -512,13 +512,13 @@ export function style_default(ctx: CanvasRenderingContext2D) {
 
 export type StyleSetter = (ctx: CanvasRenderingContext2D) => void;
 
-export interface StyleProprs {
+export interface StyleProps {
     fillcolor?: string | CanvasGradient | CanvasPattern,
     linewidth?: number,
     linecolor?: string | CanvasGradient | CanvasPattern,
     linestyle?: string,
 }
-export function style(props: StyleProprs): (ctx: CanvasRenderingContext2D) => void {
+export function style(props: StyleProps): (ctx: CanvasRenderingContext2D) => void {
     return (ctx: CanvasRenderingContext2D) => {
         if (typeof props.fillcolor !== "undefined") {
             if ((props.fillcolor == "off") || (props.fillcolor == "none")) {
