@@ -511,6 +511,11 @@ export class ViewPort2D {
         return point;
     }
 
+    /**
+     * Carry out the plotting in the passed function, but clip to the region of this view port.
+     * 
+     * @param context The plotting function.
+     */
     with_clip(context: () => void) {
         this.ctx.save();
         this.ctx.beginPath();
@@ -521,6 +526,47 @@ export class ViewPort2D {
 
         style_default(this.ctx);
         this.ctx.restore();
+    }
+
+    /**
+     * Convenience funciton which moves to the given point in data units.
+     * 
+     * @param p A vector in data-space units.
+     */
+    moveTo(p: Vect2D) {
+        p = this.data_to_canvas(p);
+        this.ctx.moveTo(p.x, p.y);
+    }
+
+    /**
+     * Convenience funciton which draws a line to the given point in data units.
+     * 
+     * @param p A vector in data-space units.
+     */
+    lineTo(p: Vect2D) {
+        p = this.data_to_canvas(p);
+        this.ctx.lineTo(p.x, p.y);
+    }
+
+    /**
+     * Like but {@link CanvasRenderingContext2D.arc} but takes data-space units and degrees.
+     * 
+     * @param p The center, in data-space units.
+     * @param radius The radius, in data-space units.
+     * @param angles The start & end angles. Anticlockwise from the x-axis, in degrees.
+     */
+    arc(p: Vect2D, radius: number, angles: [number, number], anticlockwise: boolean = true) {
+        p = this.data_to_canvas(p);
+        radius = this.data_to_canvas_dist(radius);
+        angles = [deg_to_rad(-angles[0]), deg_to_rad(-angles[1])]
+        this.ctx.arc(p.x, p.y, radius, angles[0], angles[1], anticlockwise)
+    }
+
+    arcTo(p1: Vect2D, p2: Vect2D, radius: number) {
+        p1 = this.data_to_canvas(p1);
+        p2 = this.data_to_canvas(p2);
+        radius = this.data_to_canvas_dist(radius);
+        this.ctx.arcTo(p1.x, p1.y, p2.x, p2.y, radius);
     }
 }
 
