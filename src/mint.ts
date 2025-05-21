@@ -874,8 +874,59 @@ export function draw_text(view: ViewPort2D, text: string, xy: Vect2D, offset: Of
     view.ctx.textBaseline = "middle";
 }
 
+
+export function draw_plot(view: ViewPort2D, x_range: [number, number], dx: number, func: (x: number) => number, style: StyleSetter = stroke_default) {
+    view.ctx.beginPath();
+    style(view.ctx)
+    view.moveTo(vec2(x_range[0], func(x_range[0])));
+    for (let x = x_range[0] + dx; x < x_range[1]; x += dx) {
+        view.lineTo(vec2(x, func(x)));
+    }
+    view.lineTo(vec2(x_range[1], func(x_range[1])));
+    view.ctx.stroke();
+}
+
+/**
+ * Draw an axis grid covering the view port.
+ * 
+ * The lines will be evenly spaced around the origin in both directions.
+ * 
+ * @param view 
+ * @param xspacing How far apart should the grid lines be on the x-axis?
+ * @param yspacing How far apart should the grid lines be on the y-axis?
+ * @param style 
+ */
+export function draw_axis_grid(view: ViewPort2D, xspacing: number, yspacing: number, style: StyleSetter = stroke_default) {
+    // Draw vertical lines.
+    const nxl = Math.floor(view.data.lower.x / xspacing);
+    const nxu = Math.ceil(view.data.upper.x / xspacing);
+    for (let i = nxl; i <= nxu; i++) {
+        draw_v_line(view, i * xspacing, style);
+    }
+
+    // Draw horizontal lines.
+    const nyl = Math.floor(view.data.lower.y / yspacing);
+    const nyu = Math.ceil(view.data.upper.y / yspacing);
+    for (let i = nyl; i <= nyu; i++) {
+        draw_h_line(view, i * yspacing, style);
+    }
+}
+
+export function draw_axes(view: ViewPort2D, xlabel: string | null = null, ylabel: string | null = null, size: number | null = null, font: string = font_default, style: StyleSetter = fill_default) {
+
+    draw_vector(view, vec2(view.data.lower.x, 0), vec2(view.data.upper.x, 0), size, style);
+    draw_vector(view, vec2(0, view.data.lower.y), vec2(0, view.data.upper.y), size, style);
+
+    if (xlabel != null) {
+        draw_text(view, xlabel, vec2(view.data.upper.x + 0.03 * view.data.width, 0), "..", font);
+    }
+
+    if (ylabel != null) {
+        draw_text(view, ylabel, vec2(0, view.data.upper.y + 0.05 * view.data.height), "..", font);
+    }
+}
+
 export class Draggable {
-    z: number;
 
     is_dragging: boolean = false;
     is_hovered: boolean = false;
