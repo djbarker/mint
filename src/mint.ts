@@ -1172,12 +1172,25 @@ export class AnimationController {
         return (this.last_time - this.zero_time) / 1000.0;
     }
 
+    /**
+     * Start animating with the given draw callback function.
+     * 
+     * Note: Calling start, with two different callbacks, without first calling stop, 
+     *       will result in only the first being called.
+     * 
+     * Note: Idempotent.
+     */
     start(draw: (anim: AnimationController) => void) {
         if (!this.request_id) {
             this.request_id = requestAnimationFrame(this.callback(draw));
         }
     }
 
+    /**
+     * Stop animating.
+     * 
+     * Note: Idempotent.
+     */
     stop() {
         if (this.request_id) {
             cancelAnimationFrame(this.request_id);
