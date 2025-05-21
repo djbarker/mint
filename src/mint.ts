@@ -1009,12 +1009,21 @@ export class Interactive {
      * Check & set the hover status of the {@link Draggable}s.
      * 
      * Note: Only one can be hovered at once. 
-     *       Precendence goes to the earlier registered Draggable.
+     *       Precendence goes to the earlier registered Draggable,
+     *       unless a Draggable is being dragged, in which case it will be hovered.
      * 
      * @param m The point to check.
      */
     _updateHovered(m: Vect2D) {
         this._resetHovered();
+
+        // Short-circuit; dragged => hovered.
+        if (this.dragged != null) {
+            this.dragged.is_hovered = true;
+            this.hovered = this.dragged;
+            return;
+        }
+
         for (const d of this.draggables) {
             d.is_hovered = false;
             if (d.hit_test(m) && (this.hovered == null)) {
