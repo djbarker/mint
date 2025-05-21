@@ -683,19 +683,73 @@ export function draw_line_seg(view: ViewPort2D, seg: LineSegment2D, style: Style
     style_default(view.ctx);
 }
 
-export function draw_arrow_head(view: ViewPort2D, ray: Ray2D, size: number, angle: number = 60, style: StyleSetter = fill_default) {
+/**
+ * Draw an arrow head (triangle).
+ * 
+ * @param view 
+ * @param ray Location and direction of arrow head. In data-space units.
+ * @param size In units of canvas pixels.
+ * @param angle Controls the "flatness" of the head. In degrees.
+ * @param style 
+ */
+export function draw_arrow_head(view: ViewPort2D, ray: Ray2D, size: number | null = null, angle: number = 70, style: StyleSetter = fill_default) {
+    if (size == null) {
+        size = Math.sqrt(view.ctx.canvas.width * view.ctx.canvas.height) / 20.0;
+    }
+
+    // Note: convert to canvas units and get the shape there to maintain aspect ratio & sizing.
+    ray = {
+        start: view.data_to_canvas(ray.start),
+        // angle: ray.angle,
+        angle: unit_vec_deg(ray.angle)
+            .map((v) => div(v, view.data.size))
+            .map((v) => mul(v, view.canvas.size))
+            .arg,
+    };
+
     const beta = 90 - ray.angle + angle;
     const gamma = 90 - angle;
-    const unit = unit_vec_deg(-beta)
+    const unit = unit_vec_deg(beta)
     const head1 = rescale_vec(unit, size);
-    const head2 = rotate_cw_deg(head1, -2 * gamma);
+    const head2 = rotate_cw_deg(head1, 2 * gamma);
+
     const points = [
         ray.start,
         add(ray.start, head1),
         add(ray.start, head2),
     ];
-    draw_poly(view, points, style);
+
+    // Do not use draw_poly because that expects data-space units.
+    view.ctx.beginPath();
+    view.ctx.moveTo(points[0].x, points[0].y);
+    points.forEach(p => {
+        view.ctx.lineTo(p.x, p.y)
+    });
+    style(view.ctx);
+    view.ctx.closePath();
+    view.ctx.stroke();
+    view.ctx.fill();
+    style_default(view.ctx);
 }
+
+
+/**
+ * Draws a vector as an arrow.
+ * 
+ * The arrow head is calculated based on the _canvas_ so the aspect ratio is mantained,
+ * and to allow consistent sizing between different {@link ViewPort2D}s.
+ * 
+ * @param view 
+ * @param vec_from 
+ * @param vec_to 
+ * @param size 
+ * @param style 
+ */
+export function draw_vector(view: ViewPort2D, vec_from: Vect2D, vec_to: Vect2D, size: number | null = null, style: StyleSetter = fill_default) {
+    draw_line_seg(view, { start: vec_from, end: vec_to }, style);
+    draw_arrow_head(view, { start: vec_to, angle: vec_to.minus(vec_from).arg }, size, 70, style);
+}
+
 
 export function draw_ray(view: ViewPort2D, ray: Ray2D, style: StyleSetter = stroke_default) {
     const length = Math.max(view.data.width, view.data.height) * 1.5; // NOTE: 1.5 > sqrt(2);
