@@ -44,17 +44,19 @@ const theta_g_int = int_g.registerDraggable(
 const anim = new AnimationController();
 
 /** 
- * @param {AnimationController} anim
+ * @param {AnimationController | null} anim
  */
 function draw(anim) {
 
     // Update theta based on time if neither dragging nor static.
-    if (theta_c_int.is_dragged || theta_g_int.is_dragged || !checkbox.checked) {
-        anim.rezero();
-    } else {
-        theta += omega * anim.frame_elapsed_sec;
-        if (theta > Math.PI * 2) {
-            theta -= Math.PI * 2
+    if (anim) {
+        if (theta_c_int.is_dragged || theta_g_int.is_dragged) {
+            anim.rezero();
+        } else {
+            theta += omega * anim.frame_elapsed_sec;
+            if (theta > Math.PI * 2) {
+                theta -= Math.PI * 2
+            }
         }
     }
 
@@ -154,6 +156,11 @@ checkbox.addEventListener("click", () => {
         anim.stop();
     }
 });
+
+// We need to redraw on mouse move because we may not be animating, 
+// but we still want to update the hover or dragged position.
+int_c.addOnMouseMove((m) => draw(null));
+int_g.addOnMouseMove((m) => draw(null));
 
 // Kick it off.
 anim.start(draw);
