@@ -3,18 +3,19 @@
 
 <head>
     <link rel="icon" type="image/svg" href="/logo/logo_64x64.png">
-    <style>
-        #theCanvas {
-            position: fixed;
-            top: 10%;
-            left: 50%;
-            transform: translate(-50%, -10%);
-        }
-    </style>
 </head>
 
 <body>
-    <canvas id="theCanvas" width="900px" height="400px" style="border: black solid 1px"></canvas>
+    <p>
+        Try dragging the <span style="color: limegreen" ;>green</span> vector, and the <span
+            style="color: darkviolet;">purple</span> line.
+    </p>
+    <div>
+        <canvas id="theCanvas" width="900px" height="400px" style="border: black solid 1px"></canvas>
+    </div>
+    <div>
+        <input type="checkbox" id="theCheckbox" checked="true" /><label>Animate</label>
+    </div>
     <script type="module" src="./example.js"></script>
 </body>
 
