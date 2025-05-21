@@ -1,5 +1,5 @@
 // @ts-check
-import { draw_circle, in_circle, draw_line_seg, Interactive, rotate_cw_deg, wrap, style, ViewPort2D, vec2, rescale_vec } from "../../dist/mint.js";
+import { draw_circle, in_circle, draw_line_seg, Interactive, rotate_cw_deg, wrap, style, ViewPort2D, vec2, rescale_vec, rect } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
@@ -15,8 +15,7 @@ canvas.height = 400;
 // The viewport to the canvas.
 let view = new ViewPort2D(
     ctx,
-    vec2(-5, -5),
-    vec2(5, 5),
+    rect([-5, 5], [-5, 5]),
 );
 
 let circ_a = wrap({ center: vec2(1.0, 2.0), radius: 0.25 });
@@ -100,7 +99,6 @@ let interact = new Interactive(view);
 
 function registerCircle(circ) {
     interact.registerDraggable(
-        0,
         (mouseXY) => in_circle(circ.value, mouseXY),
         (mouseXY) => {
             circ.value.center = mouseXY;

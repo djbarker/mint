@@ -51,7 +51,7 @@ vect_b.set_recalc([ray_b], (self, fired) => {
 let interact = new Interactive(view);
 
 function registerVector(vect) {
-    return interact.registerDraggable(10,
+    return interact.registerDraggable(
         (mouseXY) => in_circle({ center: vect.value, radius: rad }, mouseXY),
         (mouseXY) => {
             vect.value = mouseXY;
@@ -64,7 +64,7 @@ const vect_a_int = registerVector(vect_a);
 const vect_b_int = registerVector(vect_b);
 
 function registerRay(ray) {
-    return interact.registerDraggable(0,
+    return interact.registerDraggable(
         (mouseXY) => near_ray(ray.value, mouseXY, rad),
         (mouseXY) => {
             ray.value.angle = mouseXY.arg;
