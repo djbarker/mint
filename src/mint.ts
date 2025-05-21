@@ -603,14 +603,15 @@ export function fill_off(ctx: CanvasRenderingContext2D) {
 }
 
 export function fill_default(ctx: CanvasRenderingContext2D) {
-    stroke_off(ctx)
+    stroke_default(ctx)
     fill_style(ctx, "black");
 }
 
 export function style_default(ctx: CanvasRenderingContext2D) {
     ctx.lineWidth = 1;
     ctx.strokeStyle = "black";
-    ctx.setLineDash([0])
+    ctx.setLineDash([0]);
+    fill_off(ctx);
 }
 
 export type StyleSetter = (ctx: CanvasRenderingContext2D) => void;
@@ -657,14 +658,13 @@ export function style(props: StyleProps): (ctx: CanvasRenderingContext2D) => voi
 }
 
 
-export function draw_circle(view: ViewPort2D, circle: Circle, style: StyleSetter = style_default) {
+export function draw_circle(view: ViewPort2D, circle: Circle, style: StyleSetter = stroke_default) {
     const center = view.data_to_canvas(circle.center);
     const radius = view.data_to_canvas_dist(circle.radius);
 
     view.ctx.beginPath();
     style(view.ctx);
     view.ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
-
     view.ctx.fill();
     view.ctx.stroke();
     style_default(view.ctx);
