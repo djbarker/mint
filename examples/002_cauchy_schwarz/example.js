@@ -1,6 +1,6 @@
 // @ts-check
 
-import { vec2, dot, draw_circle, in_circle, draw_line_seg, Interactive, wrap, stroke_width, stroke_style, style_default, ViewPort2D, make_segment, rescale_vec, draw_ray, draw_poly, draw_arrow_head, style, draw_arc, rotate_cw_deg, draw_right_angle, near_ray, unit_vec_deg, draw_text, expand_vec, Rectangle, } from "../../dist/mint.js";
+import { vec2, dot, draw_circle, in_circle, draw_line_seg, Interactive, wrap, style_default, ViewPort2D, rescale_vec, draw_poly, style, draw_arc, rotate_cw_deg, draw_right_angle, near_ray, unit_vec_deg, draw_text, expand_vec, Rectangle, draw_vector, draw_line, draw_axes, font_default, draw_axis_grid, } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
@@ -95,25 +95,18 @@ function draw() {
 
     view.with_clip(() => {
 
-        // draw_poly(view, [vec2(-1, -1), vec2(-1, 5), vec2(5, 5), vec2(5, -1)], style({ fillcolor: "gray" }))
-
         // Draw the axes.
         const grid_style = style({ "linecolor": "rgb(230, 230, 230)" });
-        for (let i = -2; i <= 10; i++) {
-            draw_line_seg(view, make_segment(vec2(0, i / 2), 15, 0), grid_style);
-            draw_line_seg(view, make_segment(vec2(i / 2, 0), 15, 90), grid_style);
-        }
+        draw_axis_grid(view, 0.5, 0.5, grid_style);
+
         const axis_style = style({ "linecolor": "rgb(100, 100, 100)" });
-        draw_line_seg(view, make_segment(origin, 15, 0), axis_style);
-        draw_line_seg(view, make_segment(origin, 15, 90), axis_style);
+        draw_axes(view, null, null, 0, font_default, axis_style);
 
         // Draw the rays.
         const width_ray_a = ray_a_int.is_hovered ? 2 : 1;
         const width_ray_b = ray_b_int.is_hovered ? 2 : 1;
-        draw_ray(view, { start: origin, angle: 0 + vect_a.value.arg }, style({ linestyle: "dashed", linewidth: width_ray_a }));
-        draw_ray(view, { start: origin, angle: 0 + vect_b.value.arg }, style({ linestyle: "dashed", linewidth: width_ray_b }));
-        draw_ray(view, { start: origin, angle: 180 + vect_a.value.arg }, style({ linestyle: "dashed", linewidth: width_ray_a }));
-        draw_ray(view, { start: origin, angle: 180 + vect_b.value.arg }, style({ linestyle: "dashed", linewidth: width_ray_b }));
+        draw_line(view, { start: origin, angle: 0 + vect_a.value.arg }, style({ linestyle: "dashed", linewidth: width_ray_a }));
+        draw_line(view, { start: origin, angle: 0 + vect_b.value.arg }, style({ linestyle: "dashed", linewidth: width_ray_b }));
 
         // Draw the rectangles.
         const rect_1 = [vect_a_proj_axis, vect_a_axis, vec2(vect_b_axis.x, vect_a_axis.y), vect_b_axis, vect_b_proj_axis, vec2(vect_b_proj_axis.x, vect_a_proj_axis.y)];
@@ -149,8 +142,10 @@ function draw() {
 
         // Draw the main vectors.
 
-        draw_line_seg(view, { start: origin, end: vect_a.value }, (ctx) => { stroke_style(ctx, col_a); stroke_width(ctx, 2) });
-        draw_line_seg(view, { start: origin, end: vect_b.value }, (ctx) => { stroke_style(ctx, col_b); stroke_width(ctx, 2) });
+        const head_a = rescale_vec(vect_a.value, vect_a.value.mag - rad);
+        const head_b = rescale_vec(vect_b.value, vect_b.value.mag - rad);
+        draw_vector(view, origin, head_a, 15, style({ linewidth: 2, linecolor: col_a, fillcolor: col_a }))
+        draw_vector(view, origin, head_b, 15, style({ linewidth: 2, linecolor: col_b, fillcolor: col_b }))
 
         const style_a = (vect_a_int.is_hovered) ? {
             fillcolor: "#c46a00",
@@ -165,10 +160,6 @@ function draw() {
         draw_circle(view, { center: vect_a.value, radius: rad }, style(style_a));
         draw_circle(view, { center: vect_b.value, radius: rad }, style(style_b));
 
-        const head_a = rescale_vec(vect_a.value, vect_a.value.mag - rad);
-        const head_b = rescale_vec(vect_b.value, vect_b.value.mag - rad);
-        draw_arrow_head(view, { start: head_a, angle: head_a.arg }, 3 * rad, 70, style({ linecolor: "off", fillcolor: col_a }));
-        draw_arrow_head(view, { start: head_b, angle: head_b.arg }, 3 * rad, 70, style({ linecolor: "off", fillcolor: col_b }));
 
         // Draw the projections.
         draw_circle(view, { center: vect_a_proj, radius: rad }, style({ linecolor: "none", fillcolor: col_a }));
