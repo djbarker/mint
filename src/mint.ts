@@ -759,10 +759,10 @@ export function draw_ray(view: ViewPort2D, ray: Ray2D, style: StyleSetter = stro
 }
 
 
-export function draw_line(view: ViewPort2D, ray: Ray2D, style: StyleSetter = stroke_default) {
+export function draw_line(view: ViewPort2D, line: Line2D, style: StyleSetter = stroke_default) {
     const length = Math.max(view.data.width, view.data.height) * 1.5; // NOTE: 1.5 > sqrt(2);
-    const start = ray.start.plus(rescale_vec(unit_vec_deg(ray.angle), -length));
-    const end = ray.start.plus(rescale_vec(unit_vec_deg(ray.angle), +length));
+    const start = line.start.plus(rescale_vec(unit_vec_deg(line.angle), -length));
+    const end = line.start.plus(rescale_vec(unit_vec_deg(line.angle), +length));
     draw_line_seg(view, { start: start, end: end }, style);
 }
 
