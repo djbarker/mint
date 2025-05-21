@@ -324,11 +324,39 @@ export interface Ray2D {
  * @returns True if {@link point} is within {@link eps} of the ray.
  */
 export function near_ray(ray: Ray2D, point: Vect2D, eps: number): boolean {
+    point = sub(point, ray.start);
     const r_unit = unit_vec_deg(ray.angle);
-    const rc_dot = dot(r_unit, sub(point, ray.start))
+    const rc_dot = dot(r_unit, point)
     const c_para = rescale_vec(r_unit, rc_dot);
     const c_perp = sub(point, c_para);
     return (rc_dot > 0) && (magnitude(c_perp) <= eps)
+}
+
+/**
+ * A line in 2D.
+ */
+export interface Line2D {
+    /** A point on the line. */
+    start: Vect2D,
+    /** The argument, in degrees. */
+    angle: number,
+}
+
+/**
+ * Are we close to the given {@link Line2D}?
+ * 
+ * @param line The line.
+ * @param point The point to test for closeness.
+ * @param eps Perpendicular distance to the line which will count as "close".
+ * @returns True if {@link point} is within {@link eps} of the line.
+ */
+export function near_line(line: Line2D, point: Vect2D, eps: number): boolean {
+    point = sub(point, line.start);
+    const r_unit = unit_vec_deg(line.angle);
+    const rc_dot = dot(r_unit, point)
+    const c_para = rescale_vec(r_unit, rc_dot);
+    const c_perp = sub(point, c_para);
+    return (magnitude(c_perp) <= eps);
 }
 
 export class Rectangle {
