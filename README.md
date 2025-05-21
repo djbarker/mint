@@ -7,6 +7,8 @@ A JavaScript library for creating interactive mathematical visualizations.
 To build locally, run the following commands
 
 ```bash
+git clone git@github.com:djbarker/mint.git
+cd mint/
 npm install typescript
 make lib
 ```
