@@ -950,6 +950,9 @@ export class Interactive {
     dragged: any | null = null;
     hovered: any | null = null;
 
+    /** The previous mouse position in data-space units. */
+    prev_XY: Vect2D | undefined = undefined;
+
     constructor(view: ViewPort2D) {
         this.view = view;
 
@@ -965,6 +968,7 @@ export class Interactive {
 
         view.ctx.canvas.addEventListener("mousemove", this._toHandler((m) => {
             this._updateHovered(m);
+            this.prev_XY = m;
 
             if (this.dragged != null) {
                 this.dragged.on_drag(m);
@@ -1049,6 +1053,18 @@ export class Interactive {
                 this.dragged = d;
                 d.is_dragged = true;
             }
+        }
+    }
+
+    /**
+     * Check & set the hover status of the {@link Draggable}s 
+     * given the current positon of the mouse.
+     * 
+     * See {@link _updateHovered}.
+     */
+    updateHovered() {
+        if (this.prev_XY) {
+            this._updateHovered(this.prev_XY);
         }
     }
 
