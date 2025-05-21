@@ -755,17 +755,26 @@ export function draw_ray(view: ViewPort2D, ray: Ray2D, style: StyleSetter = stro
     const length = Math.max(view.data.width, view.data.height) * 1.5; // NOTE: 1.5 > sqrt(2);
     let start = ray.start;
     let end = add(ray.start, rescale_vec(unit_vec_deg(ray.angle), length));
-
-    start = view.data_to_canvas(start);
-    end = view.data_to_canvas(end);
-
-    view.ctx.beginPath();
-    view.ctx.moveTo(start.x, start.y);
-    view.ctx.lineTo(end.x, end.y);
-    style(view.ctx)
-    view.ctx.stroke();
-    style_default(view.ctx);
+    draw_line_seg(view, { start: start, end: end }, style);
 }
+
+
+export function draw_line(view: ViewPort2D, ray: Ray2D, style: StyleSetter = stroke_default) {
+    const length = Math.max(view.data.width, view.data.height) * 1.5; // NOTE: 1.5 > sqrt(2);
+    const start = ray.start.plus(rescale_vec(unit_vec_deg(ray.angle), -length));
+    const end = ray.start.plus(rescale_vec(unit_vec_deg(ray.angle), +length));
+    draw_line_seg(view, { start: start, end: end }, style);
+}
+
+export function draw_h_line(view: ViewPort2D, y: number, style: StyleSetter = stroke_default) {
+    draw_line(view, { start: vec2(view.data.lower.x, y), angle: 0 }, style);
+}
+
+
+export function draw_v_line(view: ViewPort2D, x: number, style: StyleSetter = stroke_default) {
+    draw_line(view, { start: vec2(x, view.data.lower.y), angle: 90 }, style);
+}
+
 
 export function draw_poly(view: ViewPort2D, points: Vect2D[], style: StyleSetter = fill_default) {
     const start = view.data_to_canvas(points[0]);
@@ -782,6 +791,7 @@ export function draw_poly(view: ViewPort2D, points: Vect2D[], style: StyleSetter
     view.ctx.fill();
     style_default(view.ctx);
 }
+
 
 // Will automatically chose the shorter way round.
 export function draw_arc(view: ViewPort2D, start: Vect2D, radius: number, angle_start: number, angle_end: number, style: StyleSetter = stroke_default) {
@@ -803,10 +813,12 @@ export function draw_arc(view: ViewPort2D, start: Vect2D, radius: number, angle_
     view.ctx.arc(start.x, start.y, radius, deg_to_rad(angle_start), deg_to_rad(angle_end), anticlockwise);
     style(view.ctx);
     view.ctx.stroke();
-    stroke_default(view.ctx);
+    style_default(view.ctx);
 }
 
+
 export type Quadrant = "++" | "+-" | "--" | "-+";
+
 
 export function draw_right_angle(view: ViewPort2D, point: Vect2D, size: number, angle: number, quadrant: Quadrant, style: StyleSetter = stroke_default) {
     const sx = (quadrant == "++" || quadrant == "+-") ? 1 : -1;
@@ -832,7 +844,9 @@ export function draw_right_angle(view: ViewPort2D, point: Vect2D, size: number, 
     style_default(view.ctx);
 }
 
+
 export type Offset = "++" | ".+" | "-+" | "+." | ".." | "-." | "+-" | ".-" | "--";
+
 
 export function text_default(ctx: CanvasRenderingContext2D) {
     ctx.strokeStyle = "white";
@@ -840,7 +854,9 @@ export function text_default(ctx: CanvasRenderingContext2D) {
     ctx.fillStyle = "black";
 }
 
+
 export const font_default: string = "16px sans-serif";
+
 
 export function draw_text(view: ViewPort2D, text: string, xy: Vect2D, offset: Offset = "..", font: string = font_default, style: StyleSetter = text_default) {
     xy = view.data_to_canvas(xy);
