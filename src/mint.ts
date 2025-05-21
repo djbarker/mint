@@ -211,10 +211,14 @@ export function rotate_cw_deg(a: Vect2D, angle: number): Vect2D {
  * Return the argument of a {@link Vect2D}.
  * 
  * @param a 
- * @returns The clockwise angle from the x-axis in degrees.
+ * @returns The clockwise angle from the x-axis in degrees. In the range [0, 360)
  */
 export function arg_deg(a: Vect2D): number {
-    return rad_to_deg(Math.atan2(a.y, a.x));
+    let arg = Math.atan2(a.y, a.x);
+    if (arg < 0) {
+        arg += 2 * Math.PI;
+    }
+    return rad_to_deg(arg);
 }
 
 /**
