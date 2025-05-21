@@ -1,12 +1,15 @@
 // @ts-check
 
-import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, style, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, draw_arrow_head, draw_vector, rescale_vec, draw_v_line, draw_text, draw_axes, near_line, font_default, unit_vec_deg } from "../../dist/mint.js";
+import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, style, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, draw_arrow_head, draw_vector, rescale_vec, draw_v_line, draw_text, draw_axes, near_line, font_default, unit_vec_deg, AnimationController } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
 
 /** @type {CanvasRenderingContext2D} */
 let ctx = canvas.getContext("2d");
+
+/** @type {HTMLInputElement} */
+const checkbox = document.getElementById("theCheckbox");
 
 const view_c = new ViewPort2D(ctx,
     rect([-1.2, 1.2], [-1.2, 1.2]),
@@ -19,27 +22,47 @@ const view_g = new ViewPort2D(ctx,
 )
 
 let theta = deg_to_rad(30);
+const omega = 2 * Math.PI / 10; // 5 seconds per rotation
 
 const int_c = new Interactive(view_c);
 const int_g = new Interactive(view_g);
 
-const omega_c_int = int_c.registerDraggable(
+const theta_c_int = int_c.registerDraggable(
     (p) => near_ray({ start: vec2(0, 0), angle: rad_to_deg(theta) }, p, 0.1),
     (p) => {
         theta = deg_to_rad(p.arg);
     }
 );
 
-const omega_g_int = int_g.registerDraggable(
+const theta_g_int = int_g.registerDraggable(
     (p) => near_line({ start: vec2(theta, 0), angle: 90 }, p, 0.1),
     (p) => {
         theta = p.x;
     }
 )
 
-let last_time = performance.now();
+const anim = new AnimationController();
 
-function draw() {
+/** 
+ * @param {AnimationController} anim
+ */
+function draw(anim) {
+
+    // Update theta based on time if neither dragging nor static.
+    if (theta_c_int.is_dragged || theta_g_int.is_dragged || !checkbox.checked) {
+        anim.rezero();
+    } else {
+        theta += omega * anim.frame_elapsed_sec;
+        if (theta > Math.PI * 2) {
+            theta -= Math.PI * 2
+        }
+    }
+
+    // Check if any draggables have moved under the mouse.
+    int_c.updateHovered();
+    int_g.updateHovered();
+
+    // Reset the canvas for redrawing.
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     style_default(ctx);
 
@@ -64,10 +87,9 @@ function draw() {
 
         draw_circle(view_c, { center: origin, radius: 1.0 });
 
-        const wray = omega_c_int.is_hovered ? 2 : 1;
+        const wray = theta_c_int.is_hovered ? 2 : 1;
 
         draw_ray(view_c, { start: origin, angle: xyvec.arg }, style({ linestyle: "dotted", linewidth: wray }));
-
 
         ctx.beginPath();
         theta_style(ctx);
@@ -80,8 +102,8 @@ function draw() {
         draw_vector(view_c, vec2(xval, 0), xyvec, 10, sin_style);
         draw_vector(view_c, origin, vec2(xval, 0), 10, cos_style);
         draw_vector(view_c, origin, xyvec, 10, style({
-            fillcolor: omega_c_int.is_hovered ? "#2bad2a" : "limegreen",
-            linecolor: omega_c_int.is_hovered ? "#2bad2a" : "limegreen",
+            fillcolor: theta_c_int.is_hovered ? "#2bad2a" : "limegreen",
+            linecolor: theta_c_int.is_hovered ? "#2bad2a" : "limegreen",
             linewidth: wray + 1,
         }))
 
@@ -92,7 +114,7 @@ function draw() {
     view_g.with_clip(() => {
         draw_axis_grid(view_g, 0.3, 0.2, grid_style);
 
-        const s = omega_g_int.is_hovered
+        const s = theta_g_int.is_hovered
             ? { fillcolor: theta_col, linecolor: "#7b00b0", linewidth: 3 }
             : { fillcolor: theta_col, linecolor: theta_col, linewidth: 2 };
         draw_v_line(view_g, theta, style(s));
@@ -122,31 +144,16 @@ function draw() {
     draw_text(view_g, "sin(θ)", vec2(0.75 * 2 * Math.PI, -1.1), "..", font_default, style({ linecolor: "none", fillcolor: sin_col }));
     draw_text(view_g, "cos(θ)", vec2(0.50 * 2 * Math.PI, -1.1), "..", font_default, style({ linecolor: "none", fillcolor: cos_col }));
     draw_text(view_c, "θ", rescale_vec(unit_vec_deg(Math.min(rad_to_deg(theta / 2.0), 45)), 0.3), "..", font_default, style({ linecolor: "none", fillcolor: theta_col }));
-
-    // Update omega based on time if not dragging.
-    const curr_time = performance.now()
-    const elapsed_sec = (curr_time - last_time) / 1000.0;
-    last_time = curr_time;
-
-    if (!(omega_c_int.is_dragged || omega_g_int.is_dragged)) {
-        theta += 0.3 * elapsed_sec;
-        if (theta > Math.PI * 2) {
-            theta -= Math.PI * 2
-        }
-
-        requestAnimationFrame(draw)
-    }
 }
 
-int_c.addOnMouseMove(() => draw());
-int_g.addOnMouseMove(() => draw());
-int_c.addOnMouseUp(() => {
-    last_time = performance.now();
-    requestAnimationFrame(draw);
-})
-int_g.addOnMouseUp(() => {
-    last_time = performance.now();
-    requestAnimationFrame(draw);
-})
+checkbox.addEventListener("click", () => {
+    if (checkbox.checked) {
+        anim.rezero();
+        anim.start(draw);
+    } else {
+        anim.stop();
+    }
+});
 
-draw()
+// Kick it off.
+anim.start(draw);
