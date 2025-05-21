@@ -624,23 +624,33 @@ export interface StyleProps {
 }
 export function style(props: StyleProps): (ctx: CanvasRenderingContext2D) => void {
     return (ctx: CanvasRenderingContext2D) => {
+
         if (typeof props.fillcolor !== "undefined") {
             if ((props.fillcolor == "off") || (props.fillcolor == "none")) {
                 fill_off(ctx);
             } else {
                 ctx.fillStyle = props.fillcolor;
             }
+        } else {
+            fill_off(ctx);
         }
+
         if (typeof props.linewidth !== "undefined") {
             ctx.lineWidth = props.linewidth;
+        } else {
+            stroke_width(ctx, 1);
         }
+
         if (typeof props.linecolor !== "undefined") {
             if ((props.linecolor == "off") || (props.linecolor == "none")) {
                 stroke_off(ctx);
             } else {
                 ctx.strokeStyle = props.linecolor;
             }
+        } else {
+            stroke_off(ctx);
         }
+
         if (typeof props.linestyle !== "undefined") {
             if ((props.linecolor == "off") || (props.linecolor == "none")) {
                 stroke_off(ctx);
@@ -653,6 +663,8 @@ export function style(props: StyleProps): (ctx: CanvasRenderingContext2D) => voi
             } else if (props.linestyle == "dashdot") {
                 ctx.setLineDash([5, 3, 2, 3]);
             }
+        } else {
+            ctx.setLineDash([0]);
         }
     };
 }
