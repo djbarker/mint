@@ -1,6 +1,6 @@
 // @ts-check
 
-import { vec2, dot, draw_circle, in_circle, draw_line_seg, Interactive, wrap, style_default, ViewPort2D, rescale_vec, draw_poly, style, draw_arc, rotate_cw_deg, draw_right_angle, near_ray, unit_vec_deg, draw_text, expand_vec, Rectangle, draw_vector, draw_line, draw_axes, font_default, draw_axis_grid, } from "../../dist/mint.js";
+import { vec2, dot, draw_circle, in_circle, draw_line_seg, Interactive, wrap, style_default, ViewPort2D, rescale_vec, draw_poly, draw_arc, rotate_cw_deg, draw_right_angle, near_ray, unit_vec_deg, draw_text, expand_vec, Rectangle, draw_vector, draw_line, draw_axes, font_default, draw_axis_grid, } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
@@ -96,74 +96,80 @@ function draw() {
     view.with_clip(() => {
 
         // Draw the axes.
-        const grid_style = style({ "linecolor": "rgb(230, 230, 230)" });
+        const grid_style = { "linecolor": "rgb(230, 230, 230)" };
         draw_axis_grid(view, 0.5, 0.5, grid_style);
 
-        const axis_style = style({ "linecolor": "rgb(100, 100, 100)" });
+        const axis_style = { "linecolor": "rgb(100, 100, 100)" };
         draw_axes(view, null, null, 0, font_default, axis_style);
 
         // Draw the rays.
         const width_ray_a = ray_a_int.is_hovered ? 2 : 1;
         const width_ray_b = ray_b_int.is_hovered ? 2 : 1;
-        draw_line(view, { start: origin, angle: 0 + vect_a.value.arg }, style({ linestyle: "dashed", linewidth: width_ray_a }));
-        draw_line(view, { start: origin, angle: 0 + vect_b.value.arg }, style({ linestyle: "dashed", linewidth: width_ray_b }));
+        draw_line(view, { start: origin, angle: 0 + vect_a.value.arg }, { linestyle: "dashed", linewidth: width_ray_a });
+        draw_line(view, { start: origin, angle: 0 + vect_b.value.arg }, { linestyle: "dashed", linewidth: width_ray_b });
 
         // Draw the rectangles.
         const rect_1 = [vect_a_proj_axis, vect_a_axis, vec2(vect_b_axis.x, vect_a_axis.y), vect_b_axis, vect_b_proj_axis, vec2(vect_b_proj_axis.x, vect_a_proj_axis.y)];
-        draw_poly(view, rect_1, style({
+        draw_poly(view, rect_1, {
             fillcolor: "rgba(50, 218, 78, 0.3)",
             linecolor: "rgba(0, 0, 0, 0)",
-        }));
+        });
 
         const rect_2 = [origin, vect_a_proj_axis, vec2(vect_b_proj_axis.x, vect_a_proj_axis.y), vect_b_proj_axis];
-        draw_poly(view, rect_2, style({
+        draw_poly(view, rect_2, {
             fillcolor: "rgba(202, 199, 29, 0.3)",
             linecolor: "rgba(0, 0, 0, 0)",
-        }));
+        });
 
         // Annotate the rectangles.
-        const s1 = style({ linewidth: 0, fillcolor: "rgb(0, 100, 17)", linecolor: "off" });
-        const s2 = style({ linewidth: 0, fillcolor: "rgb(129, 127, 22)", linecolor: "off" });
+        const s1 = { linewidth: 0, fillcolor: "rgb(0, 100, 17)", linecolor: "off" };
+        const s2 = { linewidth: 0, fillcolor: "rgb(129, 127, 22)", linecolor: "off" };
         draw_text(view, "|a|.|b|", vec2(vect_b.value.mag, vect_a.value.mag).plus(vec2(-3 * rad, -2 * rad)), "..", "10pt 'PT Serif'", s1);
         draw_text(view, "|a'|.|b'|", vec2(vect_b_proj.mag, vect_a_proj.mag).plus(vec2(-3.2 * rad, -2 * rad)), "..", "10pt 'PT Serif'", s2);
 
         // Draw the radii.
-        draw_arc(view, origin, vect_a.value.mag, vect_a.value.arg, 90, style({ linestyle: "dotted", linecolor: col_a }));
-        draw_arc(view, origin, vect_b.value.mag, 0, vect_b.value.arg, style({ linestyle: "dotted", linecolor: col_b }));
-        draw_arc(view, origin, vect_a_proj.mag, vect_a_proj.arg, 90, style({ linestyle: "dotted", linecolor: col_a }));
-        draw_arc(view, origin, vect_b_proj.mag, 0, vect_b_proj.arg, style({ linestyle: "dotted", linecolor: col_b }));
+        draw_arc(view, origin, vect_a.value.mag, vect_a.value.arg, 90, { linestyle: "dotted", linecolor: col_a });
+        draw_arc(view, origin, vect_b.value.mag, 0, vect_b.value.arg, { linestyle: "dotted", linecolor: col_b });
+        draw_arc(view, origin, vect_a_proj.mag, vect_a_proj.arg, 90, { linestyle: "dotted", linecolor: col_a });
+        draw_arc(view, origin, vect_b_proj.mag, 0, vect_b_proj.arg, { linestyle: "dotted", linecolor: col_b });
 
         // Draw the perpendiculars.
-        draw_line_seg(view, { start: vect_a.value, end: vect_a_proj }, style({ linestyle: "dashed", linewidth: 1.5, linecolor: col_a }));
-        draw_line_seg(view, { start: vect_b.value, end: vect_b_proj }, style({ linestyle: "dashed", linewidth: 1.5, linecolor: col_b }));
+        draw_line_seg(view, { start: vect_a.value, end: vect_a_proj }, { linestyle: "dashed", linewidth: 1.5, linecolor: col_a });
+        draw_line_seg(view, { start: vect_b.value, end: vect_b_proj }, { linestyle: "dashed", linewidth: 1.5, linecolor: col_b });
 
-        draw_right_angle(view, vect_a_proj, 2 * rad, vect_a_proj.arg, "-+", style({ linecolor: col_a }));
-        draw_right_angle(view, vect_b_proj, 2 * rad, vect_b_proj.arg, "--", style({ linecolor: col_b }));
+        draw_right_angle(view, vect_a_proj, 2 * rad, vect_a_proj.arg, "-+", { linecolor: col_a });
+        draw_right_angle(view, vect_b_proj, 2 * rad, vect_b_proj.arg, "--", { linecolor: col_b });
 
         // Draw the main vectors.
 
         const head_a = rescale_vec(vect_a.value, vect_a.value.mag - rad);
         const head_b = rescale_vec(vect_b.value, vect_b.value.mag - rad);
-        draw_vector(view, origin, head_a, 15, style({ linewidth: 2, linecolor: col_a, fillcolor: col_a }))
-        draw_vector(view, origin, head_b, 15, style({ linewidth: 2, linecolor: col_b, fillcolor: col_b }))
+        draw_vector(view, origin, head_a, 15, { linewidth: 2, linecolor: col_a, fillcolor: col_a })
+        draw_vector(view, origin, head_b, 15, { linewidth: 2, linecolor: col_b, fillcolor: col_b })
 
         const style_a = (vect_a_int.is_hovered) ? {
             fillcolor: "#c46a00",
             linewidth: 2,
-        } : { fillcolor: col_a };
+        } : {
+            fillcolor: col_a,
+            linewidth: 1,
+        };
 
         const style_b = (vect_b_int.is_hovered) ? {
             fillcolor: "#215e8e",
             linewidth: 2,
-        } : { fillcolor: col_b };
+        } : {
+            fillcolor: col_b,
+            linewidth: 1,
+        };
 
-        draw_circle(view, { center: vect_a.value, radius: rad }, style(style_a));
-        draw_circle(view, { center: vect_b.value, radius: rad }, style(style_b));
+        draw_circle(view, { center: vect_a.value, radius: rad }, style_a);
+        draw_circle(view, { center: vect_b.value, radius: rad }, style_b);
 
 
         // Draw the projections.
-        draw_circle(view, { center: vect_a_proj, radius: rad }, style({ linecolor: "none", fillcolor: col_a }));
-        draw_circle(view, { center: vect_b_proj, radius: rad }, style({ linecolor: "none", fillcolor: col_b }));
+        draw_circle(view, { center: vect_a_proj, radius: rad }, { linecolor: "none", fillcolor: col_a });
+        draw_circle(view, { center: vect_b_proj, radius: rad }, { linecolor: "none", fillcolor: col_b });
 
         // Annotations go last.
         draw_text(view, "a", expand_vec(vect_a.value, 2.5 * rad), "..", "16px 'PT Serif'");

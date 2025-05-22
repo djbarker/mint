@@ -1,6 +1,6 @@
 // @ts-check
 
-import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, style, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, draw_arrow_head, draw_vector, rescale_vec, draw_v_line, draw_text, draw_axes, near_line, font_default, unit_vec_deg, AnimationController } from "../../dist/mint.js";
+import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, draw_arrow_head, draw_vector, rescale_vec, draw_v_line, draw_text, draw_axes, near_line, font_default, unit_vec_deg, AnimationController, with_style } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
@@ -77,10 +77,10 @@ function draw(anim) {
     const cos_col = "darkorange";
     const theta_col = "darkviolet";
 
-    const grid_style = style({ linewidth: 0.5, linecolor: "#cccccc" });
-    const sin_style = style({ linewidth: 2, linecolor: sin_col, fillcolor: sin_col });
-    const cos_style = style({ linewidth: 2, linecolor: cos_col, fillcolor: cos_col });
-    const theta_style = style({ linecolor: theta_col, fillcolor: theta_col });
+    const grid_style = { linewidth: 0.5, linecolor: "#cccccc" };
+    const sin_style = { linewidth: 2, linecolor: sin_col, fillcolor: sin_col };
+    const cos_style = { linewidth: 2, linecolor: cos_col, fillcolor: cos_col };
+    const theta_style = { linecolor: theta_col, fillcolor: theta_col };
 
     const xval = Math.cos(theta);
     const yval = Math.sin(theta);
@@ -96,23 +96,24 @@ function draw(anim) {
 
         const wray = theta_c_int.is_hovered ? 2 : 1;
 
-        draw_ray(view_c, { start: origin, angle: xyvec.arg }, style({ linestyle: "dotted", linewidth: wray }));
+        draw_ray(view_c, { start: origin, angle: xyvec.arg }, { linestyle: "dotted", linewidth: wray });
 
-        ctx.beginPath();
-        theta_style(ctx);
-        view_c.arc(origin, 0.2, [0, rad_to_deg(theta)])
-        ctx.stroke();
+        with_style(ctx, theta_style, () => {
+            ctx.beginPath();
+            view_c.arc(origin, 0.2, [0, rad_to_deg(theta)])
+            ctx.stroke();
+        });
 
         draw_arrow_head(view_c, { start: rescale_vec(xyvec, 0.2), angle: xyvec.arg + 80 }, 10, 70, theta_style)
 
         // Draw the phasor & its x/y decomposition. 
         draw_vector(view_c, vec2(xval, 0), xyvec, 10, sin_style);
         draw_vector(view_c, origin, vec2(xval, 0), 10, cos_style);
-        draw_vector(view_c, origin, xyvec, 10, style({
+        draw_vector(view_c, origin, xyvec, 10, {
             fillcolor: theta_c_int.is_hovered ? "#2bad2a" : "limegreen",
             linecolor: theta_c_int.is_hovered ? "#2bad2a" : "limegreen",
             linewidth: wray + 1,
-        }))
+        })
 
     });
 
@@ -124,36 +125,39 @@ function draw(anim) {
         const s = theta_g_int.is_hovered
             ? { fillcolor: theta_col, linecolor: "#7b00b0", linewidth: 3 }
             : { fillcolor: theta_col, linecolor: theta_col, linewidth: 2 };
-        draw_v_line(view_g, theta, style(s));
+        draw_v_line(view_g, theta, s);
 
         draw_plot(view_g, [0, 2 * Math.PI], 0.05, Math.sin, sin_style);
         draw_plot(view_g, [0, 2 * Math.PI], 0.05, Math.cos, cos_style);
     });
 
     // Draw between the axes
-    ctx.beginPath();
-    style({ linestyle: "dashed", linecolor: sin_col })(ctx);
-    view_g.moveTo(vec2(theta, yval));
-    view_c.lineTo(vec2(xval, yval));
-    ctx.stroke();
+    with_style(ctx, { linestyle: "dashed", linecolor: sin_col }, () => {
+        ctx.beginPath();
+        view_g.moveTo(vec2(theta, yval));
+        view_c.lineTo(vec2(xval, yval));
+        ctx.stroke();
+    });
 
-    ctx.beginPath();
-    style({ linestyle: "dashed", linecolor: cos_col })(ctx);
-    view_c.moveTo(vec2(0, xval));
-    view_c.arc(vec2(0, 0), Math.abs(xval), [90 * Math.sign(xval), xval > 0 ? 0 : 180], false);
-    ctx.stroke();
-    ctx.beginPath();
-    view_g.moveTo(vec2(theta, xval));
-    view_c.lineTo(vec2(0, xval));
-    ctx.stroke();
+    with_style(ctx, { linestyle: "dashed", linecolor: cos_col }, () => {
+        ctx.beginPath();
+        view_c.moveTo(vec2(0, xval));
+        view_c.arc(vec2(0, 0), Math.abs(xval), [90 * Math.sign(xval), xval > 0 ? 0 : 180], false);
+        ctx.stroke();
 
-    draw_circle(view_g, { center: vec2(theta, xval), radius: 0.05 }, style({ fillcolor: cos_col }));
-    draw_circle(view_g, { center: vec2(theta, yval), radius: 0.05 }, style({ fillcolor: sin_col }));
+        ctx.beginPath();
+        view_g.moveTo(vec2(theta, xval));
+        view_c.lineTo(vec2(0, xval));
+        ctx.stroke();
+    });
+
+    draw_circle(view_g, { center: vec2(theta, xval), radius: 0.05 }, { fillcolor: cos_col });
+    draw_circle(view_g, { center: vec2(theta, yval), radius: 0.05 }, { fillcolor: sin_col });
 
     // Some final annotations
-    draw_text(view_g, "sin(θ)", vec2(0.75 * 2 * Math.PI, -1.1), "..", font_default, style({ linecolor: "none", fillcolor: sin_col }));
-    draw_text(view_g, "cos(θ)", vec2(0.50 * 2 * Math.PI, -1.1), "..", font_default, style({ linecolor: "none", fillcolor: cos_col }));
-    draw_text(view_c, "θ", rescale_vec(unit_vec_deg(Math.min(rad_to_deg(theta / 2.0), 45)), 0.3), "..", font_default, style({ linecolor: "none", fillcolor: theta_col }));
+    draw_text(view_g, "sin(θ)", vec2(0.75 * 2 * Math.PI, -1.1), "..", font_default, { linecolor: "none", fillcolor: sin_col });
+    draw_text(view_g, "cos(θ)", vec2(0.50 * 2 * Math.PI, -1.1), "..", font_default, { linecolor: "none", fillcolor: cos_col });
+    draw_text(view_c, "θ", rescale_vec(unit_vec_deg(Math.min(rad_to_deg(theta / 2.0), 45)), 0.3), "..", font_default, { linecolor: "none", fillcolor: theta_col });
 }
 
 checkbox.addEventListener("click", () => {

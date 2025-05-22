@@ -1,5 +1,5 @@
 // @ts-check
-import { draw_circle, in_circle, draw_line_seg, Interactive, rotate_cw_deg, wrap, style, ViewPort2D, vec2, rescale_vec, rect } from "../../dist/mint.js";
+import { draw_circle, in_circle, draw_line_seg, Interactive, rotate_cw_deg, wrap, ViewPort2D, vec2, rescale_vec, rect } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
@@ -79,20 +79,20 @@ function draw() {
     const mag_d = circ_d.value.center.mag;
 
     // draw it all
-    draw_circle(view, { center: origin, radius: mag_a }, style({ fillcolor: "off", linewidth: 0.5, linecolor: "darkorange", }));
-    draw_circle(view, { center: origin, radius: mag_b }, style({ fillcolor: "off", linewidth: 0.5, linecolor: "steelblue", }));
-    draw_circle(view, { center: origin, radius: mag_c }, style({ fillcolor: "off", linewidth: 0.5, linecolor: "#239b56", }));
-    draw_circle(view, { center: origin, radius: mag_d }, style({ fillcolor: "off", linewidth: 0.5, linecolor: "coral", }));
+    draw_circle(view, { center: origin, radius: mag_a }, { fillcolor: "off", linewidth: 0.5, linecolor: "darkorange", });
+    draw_circle(view, { center: origin, radius: mag_b }, { fillcolor: "off", linewidth: 0.5, linecolor: "steelblue", });
+    draw_circle(view, { center: origin, radius: mag_c }, { fillcolor: "off", linewidth: 0.5, linecolor: "#239b56", });
+    draw_circle(view, { center: origin, radius: mag_d }, { fillcolor: "off", linewidth: 0.5, linecolor: "coral", });
 
-    draw_line_seg(view, { start: vec2(0, 0), end: circ_a.value.center }, style({ linewidth: 2, linecolor: "darkorange" }));
-    draw_line_seg(view, { start: circ_a.value.center, end: circ_b.value.center }, style({ linewidth: 2, linecolor: "steelblue" }));
-    draw_line_seg(view, { start: circ_b.value.center, end: circ_c.value.center }, style({ linewidth: 2, linecolor: "#239b56" }));
-    draw_line_seg(view, { start: circ_c.value.center, end: circ_d.value.center }, style({ linewidth: 2, linecolor: "coral" }));
+    draw_line_seg(view, { start: vec2(0, 0), end: circ_a.value.center }, { linewidth: 2, linecolor: "darkorange" });
+    draw_line_seg(view, { start: circ_a.value.center, end: circ_b.value.center }, { linewidth: 2, linecolor: "steelblue" });
+    draw_line_seg(view, { start: circ_b.value.center, end: circ_c.value.center }, { linewidth: 2, linecolor: "#239b56" });
+    draw_line_seg(view, { start: circ_c.value.center, end: circ_d.value.center }, { linewidth: 2, linecolor: "coral" });
 
-    draw_circle(view, circ_a.value, style({ fillcolor: "darkorange" }));
-    draw_circle(view, circ_b.value, style({ fillcolor: "steelblue" }));
-    draw_circle(view, circ_c.value, style({ fillcolor: "#239b56" }));
-    draw_circle(view, circ_d.value, style({ fillcolor: "coral" }));
+    draw_circle(view, circ_a.value, { fillcolor: "darkorange" });
+    draw_circle(view, circ_b.value, { fillcolor: "steelblue" });
+    draw_circle(view, circ_c.value, { fillcolor: "#239b56" });
+    draw_circle(view, circ_d.value, { fillcolor: "coral" });
 }
 
 let interact = new Interactive(view);
