@@ -1,4 +1,5 @@
 import { style_default } from "../styles.js";
+import { init_touch_to_mouse } from "../touch.js";
 import { deg_to_rad } from "../utils.js";
 import { in_rect, Rectangle } from "./shapes.js";
 import { div, mul, sub, vec2, Vect2D } from "./vector.js";
@@ -207,6 +208,8 @@ export class Interactive {
 
     constructor(view: ViewPort2D) {
         this.view = view;
+
+        init_touch_to_mouse(view.ctx.canvas);
 
         view.ctx.canvas.addEventListener("mousedown", this._toHandler((m) => {
             this._updateDragged(m);
