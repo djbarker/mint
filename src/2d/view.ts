@@ -157,10 +157,23 @@ export class ViewPort2D {
 }
 
 
-
+/**
+ * Stores information if something is being hovered or dragged.
+ * 
+ * The state of instances of this class is updated by the relevant {@link Interactive}.
+ */
 export class Draggable {
 
+    /** 
+     * The mouse was clicked while the hit-test was true. 
+     * We are being dragged.
+     */
     is_dragged: boolean = false;
+
+    /**
+     * The hit-test is true, the mouse may or may not be down.
+     * We are being hovered.
+     */
     is_hovered: boolean = false;
 
     hit_test: (p: Vect2D) => boolean;
@@ -172,6 +185,13 @@ export class Draggable {
     }
 }
 
+/**
+ * Handle mouse events for the {@link ViewPort2D} and expose the "dragging" or "hovering" state.
+ * 
+ * This automatically filters mouse events to those inside the viewport.
+ * Additionally it converts the canvas coordinates of the mouse event into our data-space.
+ * Therefore your callbacks should expect the coordinates in the data units.
+ */
 export class Interactive {
     view: ViewPort2D;
 
