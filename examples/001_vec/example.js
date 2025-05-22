@@ -102,7 +102,7 @@ function registerCircle(circ) {
         (mouseXY) => in_circle(circ.value, mouseXY),
         (mouseXY) => {
             circ.value.center = mouseXY;
-            circ.deps.forEach(dep => dep.recalc(circ));
+            circ.fire();
         }
     );
 }
