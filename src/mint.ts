@@ -959,8 +959,8 @@ export class Interactive {
 
     draggables: Draggable[] = [];
 
-    dragged: any | null = null;
-    hovered: any | null = null;
+    dragged: Draggable | null = null;
+    hovered: Draggable | null = null;
 
     /** The previous mouse position in data-space units. */
     prev_XY: Vect2D | undefined = undefined;
@@ -998,6 +998,14 @@ export class Interactive {
 
             if (!in_rect(this.view.canvas, mouseXY_canvas)) {
                 this.prev_XY = undefined;
+                if (this.hovered) {
+                    this.hovered.is_dragged = false;
+                    this.hovered.is_hovered = false;
+                }
+                if (this.dragged) {
+                    this.dragged.is_dragged = false;
+                    this.dragged.is_hovered = false;
+                }
                 return;
             }
 
