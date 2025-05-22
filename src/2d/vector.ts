@@ -191,6 +191,22 @@ export function rotate_cw_deg(a: Vect2D, angle: number): Vect2D {
 }
 
 /**
+ * Set the direction of a vector without changing its length.
+ * 
+ * @param a The vector whose length to use.
+ * @param angle The argument of the new vector.
+ * @returns A vector of length `a.mag` with argument of {@link angle}.
+ */
+export function set_arg(a: Vect2D, angle: number): Vect2D {
+    const rad = deg_to_rad(angle);
+    const mag = a.mag;
+    return vec2(
+        mag * Math.cos(rad),
+        mag * Math.sin(rad),
+    );
+}
+
+/**
  * Return the argument of a {@link Vect2D}.
  * 
  * @param a 
