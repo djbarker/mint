@@ -2,7 +2,7 @@ import { style_default } from "../styles.js";
 import { init_touch_to_mouse } from "../touch.js";
 import { deg_to_rad } from "../utils.js";
 import { in_rect, Rectangle } from "./shapes.js";
-import { div, mul, sub, vec2, Vect2D } from "./vector.js";
+import { div, mul, sub, unit_vec_deg, vec2, Vect2D } from "./vector.js";
 
 /**
  * Convert our data space into canvas locations.
@@ -66,16 +66,33 @@ export class ViewPort2D {
     /**
      * Convert a distance in data-space units to a distance in the canvas's units.
      * 
-     * Note: Assumes the canvas's aspect ratio matches the viewport's.
+     * Because the aspect ratios of the viewport's data & canvas rectangles may not match,
+     * this returns two values, for the x and y directions.
      * 
      * @param dist In data units.
      * @returns In canvas units.
      */
-    data_to_canvas_dist(dist: number): number {
-        const frac = dist / this.data.width;
-        const size = this.canvas.width;
-        const pixels = frac * size;
-        return pixels;
+    data_to_canvas_dist(dist: number): Vect2D {
+        return vec2(
+            dist * this.canvas.width / this.data.width,
+            dist * this.canvas.height / this.data.height,
+        );
+    }
+
+    /**
+     * Convert an angle in data-space units to an angle in the canvas's units.
+     * 
+     * These may be different because the aspect ratios of the viewport's data & canvas rectangles may not match.
+     * Additionally due to the flipping of the y-axis we pick up a minus sign.
+     * 
+     * @param angle In degrees in data space.
+     * @returns In degrees in canvas space.
+     */
+    data_to_canvas_angle(angle: number): number {
+        return -unit_vec_deg(angle)
+            .map((v) => div(v, this.data.size))
+            .map((v) => mul(v, this.canvas.size))
+            .arg;
     }
 
     /**
@@ -111,52 +128,38 @@ export class ViewPort2D {
     /**
      * Convenience funciton which moves to the given point in data units.
      * 
-     * @param p A vector in data-space units.
+     * @param point A vector in data-space units.
      */
-    moveTo(p: Vect2D) {
-        p = this.data_to_canvas(p);
-        this.ctx.moveTo(p.x, p.y);
+    moveTo(point: Vect2D) {
+        point = this.data_to_canvas(point);
+        this.ctx.moveTo(point.x, point.y);
     }
 
     /**
      * Convenience funciton which draws a line to the given point in data units.
      * 
-     * @param p A vector in data-space units.
+     * @param point A vector in data-space units.
      */
-    lineTo(p: Vect2D) {
-        p = this.data_to_canvas(p);
-        this.ctx.lineTo(p.x, p.y);
+    lineTo(point: Vect2D) {
+        point = this.data_to_canvas(point);
+        this.ctx.lineTo(point.x, point.y);
     }
 
     /**
      * Like {@link CanvasRenderingContext2D.arc} but takes data-space units and degrees.
      * 
-     * @param p The center, in data-space units.
+     * @param point The center, in data-space units.
      * @param radius The radius, in data-space units.
      * @param angles The start & end angles. Anticlockwise from the x-axis, in degrees.
      */
-    arc(p: Vect2D, radius: number, angles: [number, number], anticlockwise: boolean = true) {
-        p = this.data_to_canvas(p);
-        radius = this.data_to_canvas_dist(radius);
-        angles = [deg_to_rad(-angles[0]), deg_to_rad(-angles[1])]
-        this.ctx.arc(p.x, p.y, radius, angles[0], angles[1], anticlockwise)
-    }
-
-    /**
-     * Like {@link CanvasRenderingContext2D.arcTo} but takes data-space units.
-     * 
-     * @param p1 Control point 1, in data units.
-     * @param p2 Control point 2, in data units.
-     * @param radius Arc radius, in data units.
-     */
-    arcTo(p1: Vect2D, p2: Vect2D, radius: number) {
-        p1 = this.data_to_canvas(p1);
-        p2 = this.data_to_canvas(p2);
-        radius = this.data_to_canvas_dist(radius);
-        this.ctx.arcTo(p1.x, p1.y, p2.x, p2.y, radius);
+    arc(point: Vect2D, radius: number, angles: [number, number], anticlockwise: boolean = true) {
+        const point_canvas = this.data_to_canvas(point);
+        const radius_canvas = this.data_to_canvas_dist(radius);
+        // Flipped y-coordinate means we need to negate these.
+        const angles_canvas = [-deg_to_rad(angles[0]), -deg_to_rad(angles[1])];
+        this.ctx.ellipse(point_canvas.x, point_canvas.y, radius_canvas.x, radius_canvas.y, 0, angles_canvas[0], angles_canvas[1], anticlockwise);
     }
 }
-
 
 /**
  * Stores information if something is being hovered or dragged.

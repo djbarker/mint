@@ -1,9 +1,13 @@
 // @ts-check
 
-import { vec2, dot, draw_circle, in_circle, draw_line_seg, Interactive, wrap, style_default, ViewPort2D, rescale_vec, draw_poly, draw_arc, rotate_cw_deg, draw_right_angle, near_ray, unit_vec_deg, draw_text, expand_vec, Rectangle, draw_vector, draw_line, draw_axes, font_default, draw_axis_grid, } from "../../dist/mint.js";
+import { vec2, dot, draw_circle, in_circle, draw_line_seg, Interactive, wrap, style_default, ViewPort2D, rescale_vec, draw_poly, draw_arc, rotate_cw_deg, draw_right_angle, near_ray, unit_vec_deg, annotate_text, expand_vec, Rectangle, draw_vector, draw_line, draw_axes, draw_axis_grid, rect, } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
+
+// Ensure buffer matches the layed-out size.
+canvas.width = canvas.clientWidth;
+canvas.height = canvas.clientHeight;
 
 /** @type {CanvasRenderingContext2D} */
 let ctx = canvas.getContext("2d");
@@ -100,7 +104,7 @@ function draw() {
         draw_axis_grid(view, 0.5, 0.5, grid_style);
 
         const axis_style = { "linecolor": "rgb(100, 100, 100)" };
-        draw_axes(view, null, null, 0, font_default, axis_style);
+        draw_axes(view, null, null, 0, axis_style);
 
         // Draw the rays.
         const width_ray_a = ray_a_int.is_hovered ? 2 : 1;
@@ -122,10 +126,10 @@ function draw() {
         });
 
         // Annotate the rectangles.
-        const s1 = { linewidth: 0, fillcolor: "rgb(0, 100, 17)", linecolor: "off" };
-        const s2 = { linewidth: 0, fillcolor: "rgb(129, 127, 22)", linecolor: "off" };
-        draw_text(view, "|a|.|b|", vec2(vect_b.value.mag, vect_a.value.mag).plus(vec2(-3 * rad, -2 * rad)), "..", "10pt 'PT Serif'", s1);
-        draw_text(view, "|a'|.|b'|", vec2(vect_b_proj.mag, vect_a_proj.mag).plus(vec2(-3.2 * rad, -2 * rad)), "..", "10pt 'PT Serif'", s2);
+        const s1 = { linewidth: 0, fillcolor: "rgb(0, 100, 17)", linecolor: "off", font: "13px 'PT Serif'" };
+        const s2 = { linewidth: 0, fillcolor: "rgb(129, 127, 22)", linecolor: "off", font: "13px 'PT Serif'" };
+        annotate_text(view, "|a|.|b|", vec2(vect_b.value.mag, vect_a.value.mag).plus(vec2(-3 * rad, -2 * rad)), "..", s1);
+        annotate_text(view, "|a'|.|b'|", vec2(vect_b_proj.mag, vect_a_proj.mag).plus(vec2(-3.2 * rad, -2 * rad)), "..", s2);
 
         // Draw the radii.
         draw_arc(view, origin, vect_a.value.mag, vect_a.value.arg, 90, { linestyle: "dotted", linecolor: col_a });
@@ -172,17 +176,18 @@ function draw() {
         draw_circle(view, { center: vect_b_proj, radius: rad }, { linecolor: "none", fillcolor: col_b });
 
         // Annotations go last.
-        draw_text(view, "a", expand_vec(vect_a.value, 2.5 * rad), "..", "16px 'PT Serif'");
-        draw_text(view, "b", expand_vec(vect_b.value, 2.5 * rad), "..", "16px 'PT Serif'");
+        const font = { font: "14pt 'PT Serif'", fillcolor: "black", linecolor: "white", linewidth: 3 };
+        annotate_text(view, "a", expand_vec(vect_a.value, 2.5 * rad), "..", font);
+        annotate_text(view, "b", expand_vec(vect_b.value, 2.5 * rad), "..", font);
         const vect_a_perp = vect_a_proj.minus(vect_a.value);
         const vect_b_perp = vect_b_proj.minus(vect_b.value);
-        draw_text(view, "a'", vect_a_proj.plus(rescale_vec(vect_a_perp, 2.5 * rad)), "..", "16px 'PT Serif'");
-        draw_text(view, "b'", vect_b_proj.plus(rescale_vec(vect_b_perp, 2.5 * rad)), "..", "16px 'PT Serif'");
+        annotate_text(view, "a'", vect_a_proj.plus(rescale_vec(vect_a_perp, 2.5 * rad)), "..", font);
+        annotate_text(view, "b'", vect_b_proj.plus(rescale_vec(vect_b_perp, 2.5 * rad)), "..", font);
 
-        draw_text(view, "|a|", vec2(-2 * rad, vect_a.value.mag), "..", "16px 'PT Serif'");
-        draw_text(view, "|a'|", vec2(-2 * rad, vect_a_proj.mag), "..", "16px 'PT Serif'");
-        draw_text(view, "|b|", vec2(vect_b.value.mag, -2 * rad), "..", "16px 'PT Serif'");
-        draw_text(view, "|b'|", vec2(vect_b_proj.mag, -2 * rad), "..", "16px 'PT Serif'");
+        annotate_text(view, "|a|", vec2(-2 * rad, vect_a.value.mag), "..", font);
+        annotate_text(view, "|a'|", vec2(-2 * rad, vect_a_proj.mag), "..", font);
+        annotate_text(view, "|b|", vec2(vect_b.value.mag, -2 * rad), "..", font);
+        annotate_text(view, "|b'|", vec2(vect_b_proj.mag, -2 * rad), "..", font);
     });
 }
 

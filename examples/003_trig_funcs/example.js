@@ -1,17 +1,22 @@
 // @ts-check
 
-import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, draw_arrow_head, draw_vector, rescale_vec, draw_v_line, draw_text, draw_axes, near_line, font_default, unit_vec_deg, AnimationController, with_style } from "../../dist/mint.js";
+// @ts-ignore
+import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, annotate_arrow_head, draw_vector, rescale_vec, draw_v_line, annotate_text, draw_axes, near_line, unit_vec_deg, AnimationController, with_style, annotate_circle, annotation_size, annotate_labeled_ticks, annotate_ticks } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
+// @ts-ignore
 let canvas = document.getElementById("theCanvas");
 
 /** @type {CanvasRenderingContext2D} */
+// @ts-ignore
 let ctx = canvas.getContext("2d");
 
 /** @type {HTMLInputElement} */
+// @ts-ignore
 const checkbox = document.getElementById("theCheckbox");
 
 /** @type {HTMLInputElement} */
+// @ts-ignore
 const slider = document.getElementById("theSlider");
 
 const view_c = new ViewPort2D(ctx,
@@ -20,7 +25,7 @@ const view_c = new ViewPort2D(ctx,
 );
 
 const view_g = new ViewPort2D(ctx,
-    rect([-0.05, 2 * Math.PI], [-1.2, 1.2]),
+    rect([0, 2 * Math.PI], [-1.2, 1.2]),
     rect([360, 840], [50, 350]),
 )
 
@@ -45,6 +50,8 @@ const theta_g_int = int_g.registerDraggable(
 
 const anim = new AnimationController();
 
+const asz = annotation_size(canvas);
+
 /** 
  * @param {AnimationController | null} anim
  */
@@ -52,6 +59,7 @@ function draw(anim) {
 
     // Update theta based on time if neither dragging nor static.
     if (anim) {
+        // @ts-ignore
         const omega = 2 * Math.PI / slider.value;
 
         if (theta_c_int.is_dragged || theta_g_int.is_dragged) {
@@ -87,12 +95,18 @@ function draw(anim) {
     const xyvec = vec2(xval, yval);
     const origin = vec2(0, 0);
 
-    draw_axes(view_c, "x", "y", 10);
+    draw_axis_grid(view_c, 0.1, 0.1, grid_style);
+    draw_axes(view_c, "x", "y");
 
     view_c.with_clip(() => {
-        draw_axis_grid(view_c, 0.2, 0.2, grid_style);
 
         draw_circle(view_c, { center: origin, radius: 1.0 });
+
+        const labels = ["30°", "45°", "60°"];
+        const angles_r = [Math.PI / 6, Math.PI / 4, Math.PI / 3];
+        const centers = angles_r.map((a) => vec2(Math.cos(a), Math.sin(a)));
+        const angles_d = angles_r.map(rad_to_deg);
+        annotate_labeled_ticks(view_c, centers, angles_d, labels, "end");
 
         const wray = theta_c_int.is_hovered ? 2 : 1;
 
@@ -100,16 +114,16 @@ function draw(anim) {
 
         with_style(ctx, theta_style, () => {
             ctx.beginPath();
-            view_c.arc(origin, 0.2, [0, rad_to_deg(theta)])
+            view_c.arc(origin, 0.2, [0, rad_to_deg(theta)], true)
             ctx.stroke();
         });
 
-        draw_arrow_head(view_c, { start: rescale_vec(xyvec, 0.2), angle: xyvec.arg + 80 }, 10, 70, theta_style)
+        annotate_arrow_head(view_c, { start: rescale_vec(xyvec, 0.2), angle: xyvec.arg + 80 }, asz, 70, theta_style);
 
         // Draw the phasor & its x/y decomposition. 
-        draw_vector(view_c, vec2(xval, 0), xyvec, 10, sin_style);
-        draw_vector(view_c, origin, vec2(xval, 0), 10, cos_style);
-        draw_vector(view_c, origin, xyvec, 10, {
+        draw_vector(view_c, vec2(xval, 0), xyvec, asz, sin_style);
+        draw_vector(view_c, origin, vec2(xval, 0), asz, cos_style);
+        draw_vector(view_c, origin, xyvec, asz, {
             fillcolor: theta_c_int.is_hovered ? "#2bad2a" : "limegreen",
             linecolor: theta_c_int.is_hovered ? "#2bad2a" : "limegreen",
             linewidth: wray + 1,
@@ -117,19 +131,27 @@ function draw(anim) {
 
     });
 
-    draw_axes(view_g, "θ", null, 10);
+    draw_axis_grid(view_g, 0.15, 0.1, grid_style);
+    draw_axes(view_g, "θ", null);
+
+    annotate_ticks(view_g, [-1, -0.5, 0, 0.5, 1].map((v) => vec2(0, v)), 0);
+    annotate_ticks(view_g, [Math.PI / 2, Math.PI, 3 * Math.PI / 2, 2 * Math.PI].map((v) => vec2(v, 0)), 90);
 
     view_g.with_clip(() => {
-        draw_axis_grid(view_g, 0.3, 0.2, grid_style);
-
-        const s = theta_g_int.is_hovered
-            ? { fillcolor: theta_col, linecolor: "#7b00b0", linewidth: 3 }
-            : { fillcolor: theta_col, linecolor: theta_col, linewidth: 2 };
-        draw_v_line(view_g, theta, s);
 
         draw_plot(view_g, [0, 2 * Math.PI], 0.05, Math.sin, sin_style);
         draw_plot(view_g, [0, 2 * Math.PI], 0.05, Math.cos, cos_style);
     });
+
+    annotate_labeled_ticks(view_g, [-1, -0.5, 0, 0.5, 1].map((v) => vec2(0, v)), 0, ["-1", "-0.5", "0", "0.5", "1"], "start", asz, { linecolor: "none" });
+    annotate_labeled_ticks(view_g, [Math.PI / 2, Math.PI, 3 * Math.PI / 2, 2 * Math.PI].map((v) => vec2(v, 0)), 90, ["π/2", "π", "3π/2", "2π"], "start", asz, { linecolor: "none" });
+
+    // view_g.with_clip(() => {
+    const s = theta_g_int.is_hovered
+        ? { fillcolor: theta_col, linecolor: "#7b00b0", linewidth: 3 }
+        : { fillcolor: theta_col, linecolor: theta_col, linewidth: 2 };
+    draw_v_line(view_g, theta, s);
+    // })
 
     // Draw between the axes
     with_style(ctx, { linestyle: "dashed", linecolor: sin_col }, () => {
@@ -151,13 +173,13 @@ function draw(anim) {
         ctx.stroke();
     });
 
-    draw_circle(view_g, { center: vec2(theta, xval), radius: 0.05 }, { fillcolor: cos_col });
-    draw_circle(view_g, { center: vec2(theta, yval), radius: 0.05 }, { fillcolor: sin_col });
+    annotate_circle(view_g, vec2(theta, xval), asz, { fillcolor: cos_col });
+    annotate_circle(view_g, vec2(theta, yval), asz, { fillcolor: sin_col });
 
     // Some final annotations
-    draw_text(view_g, "sin(θ)", vec2(0.75 * 2 * Math.PI, -1.1), "..", font_default, { linecolor: "none", fillcolor: sin_col });
-    draw_text(view_g, "cos(θ)", vec2(0.50 * 2 * Math.PI, -1.1), "..", font_default, { linecolor: "none", fillcolor: cos_col });
-    draw_text(view_c, "θ", rescale_vec(unit_vec_deg(Math.min(rad_to_deg(theta / 2.0), 45)), 0.3), "..", font_default, { linecolor: "none", fillcolor: theta_col });
+    annotate_text(view_g, "sin(θ)", vec2(0.75 * 2 * Math.PI, -1.1), "..", { linewidth: 3, linecolor: "white", fillcolor: sin_col });
+    annotate_text(view_g, "cos(θ)", vec2(0.50 * 2 * Math.PI, -1.1), "..", { linewidth: 3, linecolor: "white", fillcolor: cos_col });
+    annotate_text(view_c, "θ", rescale_vec(unit_vec_deg(Math.min(rad_to_deg(theta / 2.0), 45)), 0.3), "..", { linecolor: "none", fillcolor: theta_col });
 }
 
 checkbox.addEventListener("click", () => {
@@ -175,4 +197,8 @@ int_c.addOnMouseMove((m) => draw(null));
 int_g.addOnMouseMove((m) => draw(null));
 
 // Kick it off.
-anim.start(draw);
+if (checkbox.checked) {
+    anim.start(draw);
+} else {
+    draw(null);
+}

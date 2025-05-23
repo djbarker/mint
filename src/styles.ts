@@ -1,3 +1,5 @@
+import { annotation_size } from "./2d/draw.js";
+
 export function stroke_default(ctx: CanvasRenderingContext2D) {
     fill_off(ctx);
     ctx.lineWidth = 1;
@@ -49,17 +51,16 @@ export interface StyleProps {
     linewidth?: number,
     linecolor?: string | CanvasGradient | CanvasPattern,
     linestyle?: string,
+    fontsize?: number,
+    font?: string,
 }
 
 export function text_default(ctx: CanvasRenderingContext2D) {
+    ctx.setLineDash([0]);
     ctx.strokeStyle = "white";
     ctx.lineWidth = 3;
     ctx.fillStyle = "black";
 }
-
-
-export const font_default: string = "16px sans-serif";
-
 
 /**
  * Convert a {@link StyleProps} object into a {@link StyleSetter} function.
@@ -78,6 +79,13 @@ function as_styler(props: StyleProps): StyleSetter {
             }
         } else {
             fill_off(ctx);
+        }
+
+        if (typeof props.font != "undefined") {
+            ctx.font = props.font;
+        } else {
+            const default_size = annotation_size(ctx.canvas) * 1.6;
+            ctx.font = `${default_size}px sans-serif`;
         }
 
         // Stroke is a bit more tricky, we take the presence of any one property to indicate that
