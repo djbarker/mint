@@ -1,4 +1,4 @@
-import { fill_default, stroke_default, style_default, text_default, StyleT, to_styler, get_fontsize } from "../styles.js";
+import { fill_default, stroke_default, style_default, text_default, StyleT, to_styler } from "../styles.js";
 import { Circle, Line2D, LineSegment2D, make_segment, Ray2D } from "./shapes.js";
 import { add, rescale_vec, rotate_cw_deg, unit_vec_deg, vec2, Vect2D } from "./vector.js";
 import { ViewPort2D } from "./view.js";
