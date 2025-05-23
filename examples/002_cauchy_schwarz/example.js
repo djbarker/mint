@@ -15,7 +15,7 @@ let ctx = canvas.getContext("2d");
 // The viewport to the canvas.
 let view = new ViewPort2D(
     ctx,
-    new Rectangle(vec2(-1, -1), vec2(5, 5)),
+    rect([-1, 5], [-1, 5]),
 );
 
 
@@ -101,7 +101,7 @@ function draw() {
 
         // Draw the axes.
         const grid_style = { "linecolor": "rgb(230, 230, 230)" };
-        draw_axis_grid(view, 0.5, 0.5, grid_style);
+        draw_axis_grid(view, 0.25, 0.25, grid_style);
 
         const axis_style = { "linecolor": "rgb(100, 100, 100)" };
         draw_axes(view, null, null, 0, axis_style);

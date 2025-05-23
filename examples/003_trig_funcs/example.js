@@ -1,7 +1,7 @@
 // @ts-check
 
 // @ts-ignore
-import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, annotate_arrow_head, draw_vector, rescale_vec, draw_v_line, annotate_text, draw_axes, near_line, unit_vec_deg, AnimationController, with_style, annotate_circle, annotation_size, annotate_labeled_ticks, annotate_ticks } from "../../dist/mint.js";
+import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, annotate_arrow_head, draw_vector, rescale_vec, draw_v_line, annotate_text, draw_axes, near_line, unit_vec_deg, AnimationController, with_style, annotate_circle, annotation_size, annotate_labeled_ticks, annotate_ticks, expand_vec } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 // @ts-ignore
@@ -121,13 +121,17 @@ function draw(anim) {
         annotate_arrow_head(view_c, { start: rescale_vec(xyvec, 0.2), angle: xyvec.arg + 80 }, asz, 70, theta_style);
 
         // Draw the phasor & its x/y decomposition. 
-        draw_vector(view_c, vec2(xval, 0), xyvec, asz, sin_style);
-        draw_vector(view_c, origin, vec2(xval, 0), asz, cos_style);
-        draw_vector(view_c, origin, xyvec, asz, {
-            fillcolor: theta_c_int.is_hovered ? "#2bad2a" : "limegreen",
-            linecolor: theta_c_int.is_hovered ? "#2bad2a" : "limegreen",
+        const phasor_col = theta_c_int.is_hovered ? "#2bad2a" : "limegreen";
+        const xvec = vec2(xval, 0);
+        const xyvec_ = xyvec.minus(xvec).map((v) => expand_vec(v, -0.03)).plus(xvec);
+        draw_vector(view_c, xvec, xyvec_, 10, sin_style);
+        draw_vector(view_c, origin, xvec, 10, cos_style);
+        draw_vector(view_c, origin, expand_vec(xyvec, -0.03), 10, {
+            fillcolor: phasor_col,
+            linecolor: phasor_col,
             linewidth: wray + 1,
         })
+        draw_circle(view_c, { center: xyvec, radius: 0.03 }, { fillcolor: phasor_col });
 
     });
 
@@ -179,7 +183,7 @@ function draw(anim) {
     // Some final annotations
     annotate_text(view_g, "sin(θ)", vec2(0.75 * 2 * Math.PI, -1.1), "..", { linewidth: 3, linecolor: "white", fillcolor: sin_col });
     annotate_text(view_g, "cos(θ)", vec2(0.50 * 2 * Math.PI, -1.1), "..", { linewidth: 3, linecolor: "white", fillcolor: cos_col });
-    annotate_text(view_c, "θ", rescale_vec(unit_vec_deg(Math.min(rad_to_deg(theta / 2.0), 45)), 0.3), "..", { linecolor: "none", fillcolor: theta_col });
+    annotate_text(view_c, "θ", rescale_vec(unit_vec_deg(Math.min(rad_to_deg(theta / 2.0), 45)), 0.3), "..", { linewidth: 3, linecolor: "white", fillcolor: theta_col });
 }
 
 checkbox.addEventListener("click", () => {
