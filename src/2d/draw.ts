@@ -208,6 +208,18 @@ export function draw_arc(view: ViewPort2D, start: Vect2D, radius: number, angle_
 export type Quadrant = "++" | "+-" | "--" | "-+";
 
 
+/**
+ * Draw a right-angle symbol at the given point with the given angle.
+ * The quadrant argument can be used to to set which side of a line the glyph appears.
+ * Alternatively this can be set by rotating the angle 90, 180 or 270 degrees.
+ * 
+ * @param view 
+ * @param point The inner corner of the right-angle symbol, in data units.
+ * @param size In canvas units.
+ * @param angle In data units & degrees.
+ * @param quadrant 
+ * @param style 
+ */
 export function draw_right_angle(view: ViewPort2D, point: Vect2D, size: number, angle: number, quadrant: Quadrant, style: StyleT = stroke_default) {
     const sx = (quadrant == "++" || quadrant == "+-") ? 1 : -1;
     const sy = (quadrant == "++" || quadrant == "-+") ? 1 : -1;
@@ -226,6 +238,42 @@ export function draw_right_angle(view: ViewPort2D, point: Vect2D, size: number, 
         view.ctx.moveTo(a.x, a.y);
         view.ctx.lineTo(b.x, b.y);
         view.ctx.lineTo(c.x, c.y);
+        view.ctx.stroke();
+        view.ctx.fill();
+    });
+}
+
+/**
+ * An alternative way to specify the right-angle symbol.
+ * This takes two perpendicular vectors and draws the right-angle symbol inbetween them in the 
+ * positive direction.
+ * 
+ * Note: If you pass two non-perpendicular vectors this will still work but will draw a parllelogram.
+ * 
+ * @param view 
+ * @param point The inner corner of the right-angle symbol, in data units.
+ * @param vec1 The direction the first side of the right-angle symbol, in data units.
+ * @param vec2 The direction the other side of the right-angle symbol, in data units.
+ * @param size In canvas units.
+ * @param style 
+ */
+export function draw_right_angle_vecs(view: ViewPort2D, point: Vect2D, vec1: Vect2D, vec2: Vect2D, size: number, style: StyleT = stroke_default) {
+    let a = unit_vec_deg(vec1.arg).mul(size);
+    let b = unit_vec_deg(vec2.arg).mul(size);
+    let c = a.plus(b);
+
+    a = point.plus(a);
+    b = point.plus(b);
+    c = point.plus(c);
+
+    a = view.data_to_canvas(a);
+    b = view.data_to_canvas(b);
+    c = view.data_to_canvas(c);
+
+    _draw(view, style, () => {
+        view.ctx.moveTo(a.x, a.y);
+        view.ctx.lineTo(c.x, c.y);
+        view.ctx.lineTo(b.x, b.y);
         view.ctx.stroke();
         view.ctx.fill();
     });

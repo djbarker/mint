@@ -96,6 +96,13 @@ export class Vect2D {
     dot(rhs: Vect2D): number {
         return dot(this, rhs);
     }
+
+    /**
+     * Multiply this vector by a scalar.
+     */
+    mul(scalar: number): Vect2D {
+        return vec2(this.x * scalar, this.y * scalar);
+    }
 }
 
 /**

@@ -1,6 +1,6 @@
 // @ts-check
 
-import { vec2, dot, draw_circle, in_circle, draw_line_seg, Interactive, wrap, style_default, ViewPort2D, rescale_vec, draw_poly, draw_arc, rotate_cw_deg, draw_right_angle, near_ray, unit_vec_deg, annotate_text, expand_vec, Rectangle, draw_vector, draw_line, draw_axes, draw_axis_grid, rect, } from "../../dist/mint.js";
+import { vec2, dot, draw_circle, in_circle, draw_line_seg, Interactive, wrap, style_default, ViewPort2D, rescale_vec, draw_poly, draw_arc, rotate_cw_deg, near_ray, unit_vec_deg, annotate_text, expand_vec, Rectangle, draw_vector, draw_line, draw_axes, draw_axis_grid, rect, annotate_ticks, draw_right_angle_vecs, } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
@@ -97,13 +97,16 @@ function draw() {
     const vect_a_proj_axis = rotate_cw_deg(vect_a_proj, (90 - vect_a_proj.arg));
     const vect_b_proj_axis = rotate_cw_deg(vect_b_proj, 0 - vect_b_proj.arg);
 
+    const vect_a_perp = vect_a_proj.minus(vect_a.value);
+    const vect_b_perp = vect_b_proj.minus(vect_b.value);
+
     view.with_clip(() => {
 
         // Draw the axes.
         const grid_style = { "linecolor": "rgb(230, 230, 230)" };
         draw_axis_grid(view, 0.25, 0.25, grid_style);
 
-        const axis_style = { "linecolor": "rgb(100, 100, 100)" };
+        const axis_style = { "linecolor": "black" };
         draw_axes(view, null, null, 0, axis_style);
 
         // Draw the rays.
@@ -131,6 +134,9 @@ function draw() {
         annotate_text(view, "|a|.|b|", vec2(vect_b.value.mag, vect_a.value.mag).plus(vec2(-3 * rad, -2 * rad)), "..", s1);
         annotate_text(view, "|a'|.|b'|", vec2(vect_b_proj.mag, vect_a_proj.mag).plus(vec2(-3.2 * rad, -2 * rad)), "..", s2);
 
+        // Draw the ticks
+        annotate_ticks(view, [vec2(0, vect_a_axis.mag), vec2(0, vect_a_proj_axis.mag), vec2(vect_b_axis.mag, 0), vec2(vect_b_proj_axis.mag, 0)], [0, 0, 90, 90], 10);
+
         // Draw the radii.
         draw_arc(view, origin, vect_a.value.mag, vect_a.value.arg, 90, { linestyle: "dotted", linecolor: col_a });
         draw_arc(view, origin, vect_b.value.mag, 0, vect_b.value.arg, { linestyle: "dotted", linecolor: col_b });
@@ -141,8 +147,8 @@ function draw() {
         draw_line_seg(view, { start: vect_a.value, end: vect_a_proj }, { linestyle: "dashed", linewidth: 1.5, linecolor: col_a });
         draw_line_seg(view, { start: vect_b.value, end: vect_b_proj }, { linestyle: "dashed", linewidth: 1.5, linecolor: col_b });
 
-        draw_right_angle(view, vect_a_proj, 2 * rad, vect_a_proj.arg, "-+", { linecolor: col_a });
-        draw_right_angle(view, vect_b_proj, 2 * rad, vect_b_proj.arg, "--", { linecolor: col_b });
+        draw_right_angle_vecs(view, vect_a_proj, vect_a_proj.mul(-1), vect_a_perp.mul(-1), 2 * rad, { linecolor: col_a });
+        draw_right_angle_vecs(view, vect_b_proj, vect_b_proj.mul(-1), vect_b_perp.mul(-1), 2 * rad, { linecolor: col_b });
 
         // Draw the main vectors.
 
@@ -179,8 +185,6 @@ function draw() {
         const font = { font: "14pt 'PT Serif'", fillcolor: "black", linecolor: "white", linewidth: 3 };
         annotate_text(view, "a", expand_vec(vect_a.value, 2.5 * rad), "..", font);
         annotate_text(view, "b", expand_vec(vect_b.value, 2.5 * rad), "..", font);
-        const vect_a_perp = vect_a_proj.minus(vect_a.value);
-        const vect_b_perp = vect_b_proj.minus(vect_b.value);
         annotate_text(view, "a'", vect_a_proj.plus(rescale_vec(vect_a_perp, 2.5 * rad)), "..", font);
         annotate_text(view, "b'", vect_b_proj.plus(rescale_vec(vect_b_perp, 2.5 * rad)), "..", font);
 
