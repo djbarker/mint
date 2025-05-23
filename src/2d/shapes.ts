@@ -32,8 +32,8 @@ export interface LineSegment2D {
 /**
  * Make a line segment with the specified center point & angle.
  * 
- * @param center The center, in data units.
- * @param length In data units.
+ * @param center The center.
+ * @param length The length.
  * @param angle In degrees.
  * @returns 
  */
