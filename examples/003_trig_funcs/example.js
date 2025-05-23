@@ -1,6 +1,5 @@
 // @ts-check
 
-// @ts-ignore
 import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, annotate_arrow_head, draw_vector, rescale_vec, draw_v_line, annotate_text, draw_axes, near_line, unit_vec_deg, AnimationController, with_style, annotate_circle, annotation_size, annotate_labeled_ticks, annotate_ticks, expand_vec } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
@@ -19,14 +18,24 @@ const checkbox = document.getElementById("theCheckbox");
 // @ts-ignore
 const slider = document.getElementById("theSlider");
 
+// Set the canvas' buffer size based on the element's layed-out size.
+canvas.width = canvas.clientWidth;
+canvas.height = canvas.clientHeight;
+
+const circ_width = canvas.height - 30;
+const y_pad = (canvas.height - circ_width) / 2;
+const y_range = [y_pad, canvas.height - y_pad];
+
 const view_c = new ViewPort2D(ctx,
     rect([-1.2, 1.2], [-1.2, 1.2]),
-    rect([20, 320], [50, 350]),
+    // @ts-ignore
+    rect([10, 10 + circ_width], y_range),
 );
 
 const view_g = new ViewPort2D(ctx,
     rect([0, 2 * Math.PI], [-1.2, 1.2]),
-    rect([360, 840], [50, 350]),
+    // @ts-ignore
+    rect([50 + circ_width, canvas.width - 20], y_range),
 )
 
 let theta = deg_to_rad(30);
