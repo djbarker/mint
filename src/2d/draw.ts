@@ -201,27 +201,100 @@ export function draw_right_angle(view: ViewPort2D, point: Vect2D, size: number, 
     });
 }
 
-
+/**
+ * Shorthand for how to anchor the text. 
+ * The two characters are x and y directions respectively, 
+ * with '+' meaning above/right, '.' meaning centered, and '-' meaning below/left.
+ */
 export type Offset = "++" | ".+" | "-+" | "+." | ".." | "-." | "+-" | ".-" | "--";
 
+/**
+ * Convert an angle into the corresponding offset.
+ * 
+ * This divides the circle into 8 segments corresponding to the offsets (minus "..").
+ * 
+ * @param angle In degrees.
+ * @returns 
+ */
+export function angle_to_offset(angle: number): Offset {
+    angle = (360 + (angle % 360)) % 360; // Make angle in [0, 360).
+    if (angle < 45 / 2) {
+        return "+.";
+    } else if (angle < 45 + 45 / 2) {
+        return "++";
+    } else if (angle < 90 + 45 / 2) {
+        return ".+";
+    } else if (angle < 90 + 45 + 45 / 2) {
+        return "-+";
+    } else if (angle < 180 + 45 / 2) {
+        return "-.";
+    } else if (angle < 180 + 45 + 45 / 2) {
+        return "--";
+    } else if (angle < 270 + 45 / 2) {
+        return ".-";
+    } else if (angle < 270 + 45 + 45 / 2) {
+        return "+-";
+    } else {
+        return "+.";
+    }
+}
 
 /**
  * Annotate the plot with some text.
  * 
  * @param view 
  * @param text The text to draw.
- * @param xy Position of the text anchor.
+ * @param xy Position of the text anchor, in data units.
  * @param offset Where to draw relative to the anchor.
  * @param font The font to use.
  * @param style 
  */
 export function draw_text(view: ViewPort2D, text: string, xy: Vect2D, offset: Offset = "..", font: string = font_default, style: StyleT = text_default) {
     xy = view.data_to_canvas(xy);
+    let a: CanvasTextAlign | undefined = undefined;
+    let b: CanvasTextBaseline | undefined = undefined;
+    switch (offset) {
+        case "++":
+            a = "left";
+            b = "bottom";
+            break;
+        case "+.":
+            a = "left";
+            b = "middle";
+            break;
+        case "+-":
+            a = "left";
+            b = "top";
+            break;
+        case ".+":
+            a = "center";
+            b = "bottom";
+            break;
+        case "..":
+            a = "center";
+            b = "middle";
+            break;
+        case ".-":
+            a = "center";
+            b = "top";
+            break;
+        case "-+":
+            a = "right";
+            b = "bottom";
+            break;
+        case "-.":
+            a = "right";
+            b = "middle";
+            break;
+        case "--":
+            a = "right";
+            b = "top";
+            break;
+    }
 
     _draw(view, style, () => {
-        view.ctx.font = font;
-        view.ctx.textAlign = "center";
-        view.ctx.textBaseline = "middle";
+        view.ctx.textAlign = a;
+        view.ctx.textBaseline = b;
         view.ctx.strokeText(text, xy.x, xy.y);
         view.ctx.fillText(text, xy.x, xy.y);
         // Reset font properties
