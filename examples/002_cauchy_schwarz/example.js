@@ -131,8 +131,8 @@ function draw() {
         // Annotate the rectangles.
         const s1 = { linewidth: 0, fillcolor: "rgb(0, 100, 17)", linecolor: "off", font: "13px 'PT Serif'" };
         const s2 = { linewidth: 0, fillcolor: "rgb(129, 127, 22)", linecolor: "off", font: "13px 'PT Serif'" };
-        annotate_text(view, "|a|.|b|", vec2(vect_b.value.mag, vect_a.value.mag).plus(vec2(-3 * rad, -2 * rad)), "..", s1);
-        annotate_text(view, "|a'|.|b'|", vec2(vect_b_proj.mag, vect_a_proj.mag).plus(vec2(-3.2 * rad, -2 * rad)), "..", s2);
+        annotate_text(view, "|a|.|b|", vec2(vect_b.value.mag, vect_a.value.mag).plus(vec2(-3 * rad, -2 * rad)), "..", 0, s1);
+        annotate_text(view, "|a'|.|b'|", vec2(vect_b_proj.mag, vect_a_proj.mag).plus(vec2(-3.2 * rad, -2 * rad)), "..", 0, s2);
 
         // Draw the ticks
         annotate_ticks(view, [vec2(0, vect_a_axis.mag), vec2(0, vect_a_proj_axis.mag), vec2(vect_b_axis.mag, 0), vec2(vect_b_proj_axis.mag, 0)], [0, 0, 90, 90], 10);
@@ -183,15 +183,15 @@ function draw() {
 
         // Annotations go last.
         const font = { font: "14pt 'PT Serif'", fillcolor: "black", linecolor: "white", linewidth: 3 };
-        annotate_text(view, "a", expand_vec(vect_a.value, 2.5 * rad), "..", font);
-        annotate_text(view, "b", expand_vec(vect_b.value, 2.5 * rad), "..", font);
-        annotate_text(view, "a'", vect_a_proj.plus(rescale_vec(vect_a_perp, 2.5 * rad)), "..", font);
-        annotate_text(view, "b'", vect_b_proj.plus(rescale_vec(vect_b_perp, 2.5 * rad)), "..", font);
+        annotate_text(view, "a", expand_vec(vect_a.value, 2.5 * rad), "..", 0, font);
+        annotate_text(view, "b", expand_vec(vect_b.value, 2.5 * rad), "..", 0, font);
+        annotate_text(view, "a'", vect_a_proj.plus(rescale_vec(vect_a_perp, 2.5 * rad)), "..", 0, font);
+        annotate_text(view, "b'", vect_b_proj.plus(rescale_vec(vect_b_perp, 2.5 * rad)), "..", 0, font);
 
-        annotate_text(view, "|a|", vec2(-2 * rad, vect_a.value.mag), "..", font);
-        annotate_text(view, "|a'|", vec2(-2 * rad, vect_a_proj.mag), "..", font);
-        annotate_text(view, "|b|", vec2(vect_b.value.mag, -2 * rad), "..", font);
-        annotate_text(view, "|b'|", vec2(vect_b_proj.mag, -2 * rad), "..", font);
+        annotate_text(view, "|a|", vec2(-2 * rad, vect_a.value.mag), "..", 0, font);
+        annotate_text(view, "|a'|", vec2(-2 * rad, vect_a_proj.mag), "..", 0, font);
+        annotate_text(view, "|b|", vec2(vect_b.value.mag, -2 * rad), "..", 0, font);
+        annotate_text(view, "|b'|", vec2(vect_b_proj.mag, -2 * rad), "..", 0, font);
     });
 }
 

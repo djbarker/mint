@@ -1,6 +1,6 @@
 // @ts-check
 
-import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, deg_to_rad, style_default, draw_plot, draw_ray, Interactive, near_ray, rad_to_deg, annotate_arrow_head, draw_vector, rescale_vec, draw_v_line, annotate_text, draw_axes, near_line, unit_vec_deg, AnimationController, with_style, annotate_circle, annotation_size, annotate_labeled_ticks, annotate_ticks, expand_vec } from "../../dist/mint.js";
+import { rect, ViewPort2D, draw_circle, vec2, draw_axis_grid, deg_to_rad, style_default, draw_ray, Interactive, near_ray, rad_to_deg, annotate_arrow_head, draw_vector, rescale_vec, draw_v_line, annotate_text, draw_axes, near_line, unit_vec_deg, AnimationController, with_style, annotate_circle, annotation_size, annotate_labeled_ticks, annotate_ticks, expand_vec, draw_func } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 // @ts-ignore
@@ -115,7 +115,7 @@ function draw(anim) {
         const angles_r = [Math.PI / 6, Math.PI / 4, Math.PI / 3];
         const centers = angles_r.map((a) => vec2(Math.cos(a), Math.sin(a)));
         const angles_d = angles_r.map(rad_to_deg);
-        annotate_labeled_ticks(view_c, centers, angles_d, labels, "end");
+        annotate_labeled_ticks(view_c, centers, angles_d, labels, "both", "end");
 
         const wray = theta_c_int.is_hovered ? 2 : 1;
 
@@ -151,13 +151,12 @@ function draw(anim) {
     annotate_ticks(view_g, [Math.PI / 2, Math.PI, 3 * Math.PI / 2, 2 * Math.PI].map((v) => vec2(v, 0)), 90);
 
     view_g.with_clip(() => {
-
-        draw_plot(view_g, [0, 2 * Math.PI], 0.05, Math.sin, sin_style);
-        draw_plot(view_g, [0, 2 * Math.PI], 0.05, Math.cos, cos_style);
+        draw_func(view_g, [0, 2 * Math.PI], 0.05, Math.sin, sin_style);
+        draw_func(view_g, [0, 2 * Math.PI], 0.05, Math.cos, cos_style);
     });
 
-    annotate_labeled_ticks(view_g, [-1, -0.5, 0, 0.5, 1].map((v) => vec2(0, v)), 0, ["-1", "-0.5", "0", "0.5", "1"], "start", asz, { linecolor: "none" });
-    annotate_labeled_ticks(view_g, [Math.PI / 2, Math.PI, 3 * Math.PI / 2, 2 * Math.PI].map((v) => vec2(v, 0)), 90, ["π/2", "π", "3π/2", "2π"], "start", asz, { linecolor: "none" });
+    annotate_labeled_ticks(view_g, [-1, -0.5, 0, 0.5, 1].map((v) => vec2(0, v)), 0, ["-1", "-0.5", "0", "0.5", "1"], "both", "start", asz, { linecolor: "none" });
+    annotate_labeled_ticks(view_g, [Math.PI / 2, Math.PI, 3 * Math.PI / 2, 2 * Math.PI].map((v) => vec2(v, 0)), 90, ["π/2", "π", "3π/2", "2π"], "both", "start", asz, { linecolor: "none" });
 
     // view_g.with_clip(() => {
     const s = theta_g_int.is_hovered
@@ -190,9 +189,9 @@ function draw(anim) {
     annotate_circle(view_g, vec2(theta, yval), asz, { fillcolor: sin_col });
 
     // Some final annotations
-    annotate_text(view_g, "sin(θ)", vec2(0.75 * 2 * Math.PI, -1.1), "..", { linewidth: 3, linecolor: "white", fillcolor: sin_col });
-    annotate_text(view_g, "cos(θ)", vec2(0.50 * 2 * Math.PI, -1.1), "..", { linewidth: 3, linecolor: "white", fillcolor: cos_col });
-    annotate_text(view_c, "θ", rescale_vec(unit_vec_deg(Math.min(rad_to_deg(theta / 2.0), 45)), 0.3), "..", { linewidth: 3, linecolor: "white", fillcolor: theta_col });
+    annotate_text(view_g, "sin(θ)", vec2(0.75 * 2 * Math.PI, -1.1), "..", 0, { linewidth: 3, linecolor: "white", fillcolor: sin_col });
+    annotate_text(view_g, "cos(θ)", vec2(0.50 * 2 * Math.PI, -1.1), "..", 0, { linewidth: 3, linecolor: "white", fillcolor: cos_col });
+    annotate_text(view_c, "θ", rescale_vec(unit_vec_deg(Math.min(rad_to_deg(theta / 2.0), 45)), 0.3), "..", 0, { linewidth: 3, linecolor: "white", fillcolor: theta_col });
 }
 
 checkbox.addEventListener("click", () => {
