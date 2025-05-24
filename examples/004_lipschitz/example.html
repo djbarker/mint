@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="icon" type="image/svg" href="/logo/logo_64x64.png">
+</head>
+
+<body>
+    <p>
+        Try dragging the <span style="color: limegreen" ;>green</span> or <span style="color: red;">red</span> point.
+    </p>
+    <div>
+        <canvas id="theCanvas" width="900px" height="400px"
+            style="border: black solid 1px; touch-action: none;"></canvas>
+    </div>
+    <div style="display: flex; flex-direction: row; align-items: center;">
+        <input id="theSlider" type="range" min="0.1" max="2.0" value="1.0" step="0.1" /><label>&nbsp;Lipschitz
+            constant.</label>
+    </div>
+    <script type="module" src="./example.js"></script>
+</body>
+
+</html>
