@@ -43,9 +43,18 @@ function hazard(age) {
     return Math.min(Number(hazardSlider.value) * (1 - l), 1.0);
 }
 
+function _calc_norm() {
+    return sum(age.map((v) => {
+        const x = (v - 30) / 5;
+        return Math.exp(- x * x);
+    }))
+}
+
+const norm = _calc_norm();
+
 function birth(age) {
     const x = (age - 30) / 5;
-    const l = Math.exp(- x * x);
+    const l = Math.exp(- x * x) / norm;
     return l * Number(endogSlider.value);
 }
 
