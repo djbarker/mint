@@ -1,5 +1,5 @@
-import { fill_default, stroke_default, style_default, text_default, StyleT, to_styler } from "../styles.js";
-import { Circle, Line2D, LineSegment2D, make_segment, Ray2D } from "./shapes.js";
+import { fill_default, stroke_default, style_default, text_default, StyleT, to_styler, with_style } from "../styles.js";
+import { Circle, Line2D, LineSegment2D, make_segment, Ray2D, Rectangle } from "./shapes.js";
 import { add, rescale_vec, rotate_cw_deg, unit_vec_deg, vec2, Vect2D } from "./vector.js";
 import { ViewPort2D } from "./view.js";
 
@@ -277,6 +277,19 @@ export function draw_right_angle_vecs(view: ViewPort2D, point: Vect2D, vec1: Vec
         view.ctx.stroke();
         view.ctx.fill();
     });
+}
+
+export function draw_rectangle(view: ViewPort2D, rect: Rectangle, style: StyleT = style_default) {
+    with_style(view.ctx, style, () => {
+        view.ctx.beginPath();
+        view.rect(rect);
+        view.ctx.fill();
+        view.ctx.stroke();
+    });
+}
+
+export function draw_border(view: ViewPort2D, style: StyleT = style_default) {
+    draw_rectangle(view, view.data, style);
 }
 
 /**
