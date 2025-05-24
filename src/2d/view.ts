@@ -169,7 +169,7 @@ export class ViewPort2D {
         // Remember upper & lower get flipped.
         const lower = this.data_to_canvas(rect.lower.with_y(rect.upper.y));
         const width = this.data_to_canvas_dist(rect.width).x;
-        const height = this.data_to_canvas_dist(rect.width).y;
+        const height = this.data_to_canvas_dist(rect.height).y;
         this.ctx.rect(lower.x, lower.y, width, height);
     }
 }
