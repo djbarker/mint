@@ -1,4 +1,5 @@
 import { fill_default, stroke_default, style_default, text_default, StyleT, to_styler, with_style } from "../styles.js";
+import { deg_to_rad } from "../utils.js";
 import { Circle, Line2D, LineSegment2D, make_segment, Ray2D, Rectangle } from "./shapes.js";
 import { add, rescale_vec, rotate_cw_deg, unit_vec_deg, vec2, Vect2D } from "./vector.js";
 import { ViewPort2D } from "./view.js";
@@ -338,9 +339,10 @@ export function angle_to_offset(angle: number): Offset {
  * @param xy Position of the text anchor, in data units.
  * @param offset Where to draw relative to the anchor.
  * @param font The font to use.
+ * @param angle In degrees.
  * @param style 
  */
-export function annotate_text(view: ViewPort2D, text: string, xy: Vect2D, offset: Offset = "..", style: StyleT = text_default) {
+export function annotate_text(view: ViewPort2D, text: string, xy: Vect2D, offset: Offset = "..", angle: number = 0, style: StyleT = text_default) {
     xy = view.data_to_canvas(xy);
 
     let a: CanvasTextAlign | undefined = undefined;
@@ -385,18 +387,22 @@ export function annotate_text(view: ViewPort2D, text: string, xy: Vect2D, offset
     }
 
     _draw(view, style, () => {
+        view.ctx.save();
+        view.ctx.translate(xy.x, xy.y);
+        view.ctx.rotate(deg_to_rad(-angle));
         view.ctx.textAlign = a;
         view.ctx.textBaseline = b;
-        view.ctx.strokeText(text, xy.x, xy.y);
-        view.ctx.fillText(text, xy.x, xy.y);
+        view.ctx.strokeText(text, 0, 0);
+        view.ctx.fillText(text, 0, 0);
         // Reset font properties
+        view.ctx.restore();
         view.ctx.textAlign = "center";
         view.ctx.textBaseline = "middle";
     });
 }
 
 /**
- * Draw a plot of the given function.
+ * Draw a line plot of the given function.
  * 
  * @param view 
  * @param x_range The range of x values to plot.
@@ -404,13 +410,32 @@ export function annotate_text(view: ViewPort2D, text: string, xy: Vect2D, offset
  * @param func The function to calculate the y values.
  * @param style 
  */
-export function draw_plot(view: ViewPort2D, x_range: [number, number], dx: number, func: (x: number) => number, style: StyleT = stroke_default) {
+export function draw_func(view: ViewPort2D, x_range: [number, number], dx: number, func: (x: number) => number, style: StyleT = stroke_default) {
     _draw(view, style, () => {
         view.moveTo(vec2(x_range[0], func(x_range[0])));
         for (let x = x_range[0] + dx; x < x_range[1]; x += dx) {
             view.lineTo(vec2(x, func(x)));
         }
         view.lineTo(vec2(x_range[1], func(x_range[1])));
+        view.ctx.stroke();
+    });
+}
+
+/**
+ * Draw a line plot of the given data.
+ * 
+ * @param view 
+ * @param xdata The x values in data units.
+ * @param ydata The y values in data units.
+ * @param style 
+ */
+export function draw_plot(view: ViewPort2D, xdata: number[], ydata: number[], style: StyleT = stroke_default) {
+    const imax = Math.min(xdata.length, ydata.length);
+    _draw(view, style, () => {
+        view.moveTo(vec2(xdata[0], ydata[0]));
+        for (let i = 1; i < imax; i++) {
+            view.lineTo(vec2(xdata[i], ydata[i]));
+        }
         view.ctx.stroke();
     });
 }
@@ -442,7 +467,9 @@ export function draw_axis_grid(view: ViewPort2D, xspacing: number, yspacing: num
 }
 
 /**
- * Draw a set of orthogonal axes for the plot.
+ * Draw a set as axes for the plot.
+ * 
+ * "Maths" style; i.e. a pair of of orthogonal arrows, centered on the origin.
  * 
  * @param view 
  * @param xlabel Optional label for the x-axis.
@@ -458,14 +485,16 @@ export function draw_axes(view: ViewPort2D, xlabel: string | null = null, ylabel
     draw_vector(view, vec2(0, view.data.lower.y), vec2(0, view.data.upper.y), size, axis_style);
 
     if (xlabel != null) {
-        annotate_text(view, xlabel, vec2(view.data.upper.x, 0), "+.", label_style);
+        annotate_text(view, xlabel, vec2(view.data.upper.x, 0), "+.", 0, label_style);
     }
 
     if (ylabel != null) {
-        annotate_text(view, ylabel, vec2(0, view.data.upper.y), ".+", label_style);
+        annotate_text(view, ylabel, vec2(0, view.data.upper.y), ".+", 0, label_style);
     }
 }
 
+
+export type TickStyle = "outer" | "inner" | "both";
 
 /**
  * Annotate the plot with an axis tick.
@@ -473,10 +502,11 @@ export function draw_axes(view: ViewPort2D, xlabel: string | null = null, ylabel
  * @param view 
  * @param center In data space.
  * @param angle In data space, in degrees.
+ * @param tick Inner, outer or both?
  * @param size The length in canvas units.
  * @param style 
  */
-export function annotate_tick(view: ViewPort2D, center: Vect2D, angle: number, size: number | null, style: StyleT = stroke_default) {
+export function annotate_tick(view: ViewPort2D, center: Vect2D, angle: number, tick: TickStyle = "both", size: number | null, style: StyleT = stroke_default) {
     if (size == null) {
         size = annotation_size(view.ctx.canvas);
     }
@@ -484,6 +514,11 @@ export function annotate_tick(view: ViewPort2D, center: Vect2D, angle: number, s
     center = view.data_to_canvas(center);
     angle = view.data_to_canvas_angle(angle);
     const seg = make_segment(center, size, angle);
+    if (tick == "outer") {
+        seg.end = center;
+    } else if (tick == "inner") {
+        seg.start = center;
+    }
     _draw(view, style, () => {
         view.ctx.beginPath();
         view.ctx.moveTo(seg.start.x, seg.start.y);
@@ -498,15 +533,16 @@ export function annotate_tick(view: ViewPort2D, center: Vect2D, angle: number, s
  * @param view 
  * @param centers A list of tick centers in data units.
  * @param angles The angle, or angles, of the ticks in degrees in data space.
+ * @param tick Inner, outer or both?
  * @param style 
  */
-export function annotate_ticks(view: ViewPort2D, centers: Vect2D[], angles: number | number[], size: number | null = null, style: StyleT = stroke_default) {
+export function annotate_ticks(view: ViewPort2D, centers: Vect2D[], angles: number | number[], tick: TickStyle = "both", size: number | null = null, style: StyleT = stroke_default) {
     if (!Array.isArray(angles)) {
         angles = Array(centers.length).fill(angles)
     }
 
     for (let i = 0; i < centers.length; i++) {
-        annotate_tick(view, centers[i], angles[i], size, style);
+        annotate_tick(view, centers[i], angles[i], tick, size, style);
     }
 }
 
@@ -519,17 +555,18 @@ export type LabelPos = "start" | "end";
  * @param center In data space.
  * @param angle In data space, in degrees.
  * @param label 
+ * @param tick Inner, outer or both?
  * @param loc Label the start or end of the tick?
  * @param size In canvas units.
  * @param tick_style 
  * @param text_style 
  */
-export function annotate_labeled_tick(view: ViewPort2D, center: Vect2D, angle: number, label: string, loc: LabelPos = "start", size: number | null = null, tick_style: StyleT = stroke_default, text_style: StyleT = text_default) {
+export function annotate_labeled_tick(view: ViewPort2D, center: Vect2D, angle: number, label: string, tick: TickStyle = "both", loc: LabelPos = "start", size: number | null = null, tick_style: StyleT = stroke_default, text_style: StyleT = text_default) {
     if (size == null) {
         size = annotation_size(view.ctx.canvas);
     }
 
-    annotate_tick(view, center, angle, size, tick_style);
+    annotate_tick(view, center, angle, tick, size, tick_style);
 
     if (loc == "start") {
         angle = angle + 180;
@@ -539,7 +576,7 @@ export function annotate_labeled_tick(view: ViewPort2D, center: Vect2D, angle: n
     angle = view.data_to_canvas_angle(angle);
     const off = rescale_vec(unit_vec_deg(angle), 1.2 * size / 2);
     const pos = view.data_to_canvas(center).plus(off).map((v) => view.canvas_to_data(v));
-    annotate_text(view, label, pos, offset, text_style);
+    annotate_text(view, label, pos, offset, 0, text_style);
     // annotate_circle(view, pos, 5, { fillcolor: "red" });
 }
 
@@ -550,17 +587,18 @@ export function annotate_labeled_tick(view: ViewPort2D, center: Vect2D, angle: n
  * @param centers In data space.
  * @param angles The angle, or angles, of the ticks in degrees in data space.
  * @param labels 
+ * @param tick Inner, outer or both?
  * @param loc Label the start or end of the tick?
  * @param size In canvas units.
  * @param tick_style 
  * @param text_style 
  */
-export function annotate_labeled_ticks(view: ViewPort2D, centers: Vect2D[], angles: number | number[], labels: string[], loc: LabelPos = "start", size: number | null = null, tick_style: StyleT = stroke_default, text_style: StyleT = text_default) {
+export function annotate_labeled_ticks(view: ViewPort2D, centers: Vect2D[], angles: number | number[], labels: string[], tick: TickStyle = "both", loc: LabelPos = "start", size: number | null = null, tick_style: StyleT = stroke_default, text_style: StyleT = text_default) {
     if (!Array.isArray(angles)) {
         angles = Array(centers.length).fill(angles)
     }
 
     for (let i = 0; i < centers.length; i++) {
-        annotate_labeled_tick(view, centers[i], angles[i], labels[i], loc, size, tick_style, text_style);
+        annotate_labeled_tick(view, centers[i], angles[i], labels[i], tick, loc, size, tick_style, text_style);
     }
 }
