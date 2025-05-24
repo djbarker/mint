@@ -58,8 +58,8 @@ export class ViewPort2D {
         let pixels = frac
             .map_y((y) => 1 - y)
             .map((f) => mul(f, this.canvas.size))
-            .plus(this.canvas.lower);
-        ;
+            .plus(this.canvas.lower)
+            ;
         return pixels;
     }
 
@@ -158,6 +158,19 @@ export class ViewPort2D {
         // Flipped y-coordinate means we need to negate these.
         const angles_canvas = [-deg_to_rad(angles[0]), -deg_to_rad(angles[1])];
         this.ctx.ellipse(point_canvas.x, point_canvas.y, radius_canvas.x, radius_canvas.y, 0, angles_canvas[0], angles_canvas[1], anticlockwise);
+    }
+
+    /**
+     * Like {@link CanvasRenderingContext2D.rect} but takes data-space units.
+     * 
+     * @param rect A {@link Rectangle} in data units.
+     */
+    rect(rect: Rectangle) {
+        // Remember upper & lower get flipped.
+        const lower = this.data_to_canvas(rect.lower.with_y(rect.upper.y));
+        const width = this.data_to_canvas_dist(rect.width).x;
+        const height = this.data_to_canvas_dist(rect.width).y;
+        this.ctx.rect(lower.x, lower.y, width, height);
     }
 }
 
