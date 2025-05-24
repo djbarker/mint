@@ -37,6 +37,20 @@ export function arange(start: number, stop: number, step: number): number[] {
 }
 
 /**
+ * Calculat the sum of an array of numbers.
+ * 
+ * @param data 
+ * @returns 
+ */
+export function sum(data: number[]): number {
+    let sum = 0;
+    for (let i = 0; i < data.length; i++) {
+        sum += data[i];
+    }
+    return sum;
+}
+
+/**
  * Calculate the cumulative sum of an array of values.
  * 
  * @param data 

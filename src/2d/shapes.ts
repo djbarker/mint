@@ -120,6 +120,11 @@ export class Rectangle {
         }
     }
 
+    /** The rectangles center point. */
+    get center(): Vect2D {
+        return this.lower.plus(this.upper).mul(0.5);
+    }
+
     /** The rectangle's size in each dimension. */
     get size(): Vect2D {
         return sub(this.upper, this.lower);

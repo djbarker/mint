@@ -2,7 +2,7 @@
 
 import { rect } from "../../dist/2d/shapes.js";
 import { Interactive, ViewPort2D } from "../../dist/2d/view.js";
-import { AnimationController, annotate_labeled_ticks, annotate_text, arange, clip, cumprod, cumsum, draw_axes, draw_axis_grid, draw_func, draw_h_line, draw_plot, draw_rectangle, stroke_default, vec2 } from "../../dist/mint.js";
+import { AnimationController, annotate_labeled_ticks, annotate_text, arange, clip, cumprod, cumsum, draw_axes, draw_axis_grid, draw_func, draw_h_line, draw_plot, draw_rectangle, stroke_default, sum, vec2 } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
@@ -32,13 +32,15 @@ let view_pop = new ViewPort2D(ctx, rect(xrng, [0, 3.6]), crect);
 let view_hzd = new ViewPort2D(ctx, rect(xrng, [0, 1.2]), crect);
 let view_brt = new ViewPort2D(ctx, rect(xrng, [0, 1.2]), crect);
 
+let years = 0;
 
 const pop = Array(xmax + 1).fill(0);
 const age = arange(0, xmax, 1.0);
+const tot = Array(500).fill(0);
 
 function hazard(age) {
-    const l = 1 - 1 / (1 + Math.exp(- (age - 95) / 7.0));
-    return Math.min(Number(hazardSlider.value) * (1 - 0.999 * l), 1.0);
+    const l = 1 - 1 / (1 + Math.exp(- (age - 95) / 5.0));
+    return Math.min(Number(hazardSlider.value) * (1 - l), 1.0);
 }
 
 function birth(age) {
@@ -61,10 +63,18 @@ function draw(anim) {
             pop[i] = pop[i - 1] * (1 - hazard(i));
         }
         pop[0] = Number(exogSlider.value) + rate;
-
-
-
+        // Really dumb but it's fast enough.
+        for (let i = 0; i < tot.length - 1; i++) {
+            tot[i] = tot[i + 1];
+        }
+        tot[tot.length - 1] = sum(pop);
+        years += 1;
+        years = years % 200
     }
+
+
+    const ytop = canvas.height - 1.2 * cpad;
+    let view_tot = new ViewPort2D(ctx, rect([years - tot.length, years - 1], [0, 300]), rect([1.2 * cpad, 1.2 * cpad + 200], [ytop - 100, ytop]))
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -91,6 +101,15 @@ function draw(anim) {
     annotate_text(view_pop, "Population", vec2(-0.5, view_pop.data.height / 2.0), ".+", 90, { fillcolor: "steelblue" });
     annotate_text(view_pop, "Hazard Rate", vec2(view_pop.data.width + 2.5, view_pop.data.height * 0.75), ".+", -90, { fillcolor: "coral" });
     annotate_text(view_pop, "Birth Rate", vec2(view_pop.data.width + 2.5, view_pop.data.height * 0.25), ".+", -90, { fillcolor: "limegreen" });
+
+    view_tot.with_clip(() => {
+        draw_rectangle(view_tot, view_tot.data, { fillcolor: "white" });
+        draw_axis_grid(view_tot, 50, 30, { linecolor: "#DDDDDD" });
+        draw_plot(view_tot, arange(years - tot.length, years, 1), tot, { linecolor: "darkviolet", linewidth: 2 });
+    })
+    draw_rectangle(view_tot, view_tot.data, { linecolor: "black" });
+    annotate_text(view_tot, "Total Population", view_tot.data.center.map_y((y) => y * 1.9), ".-", 0, { fillcolor: "darkviolet", linecolor: "white", linewidth: 3 });
+    // annotate_text(view_tot, "Time", view_tot.data.center.map_y((y) => -y * 0.1), ".-", 0, { fillcolor: "black", linecolor: "white", linewidth: 3 });
 }
 
 const anim = new AnimationController()
