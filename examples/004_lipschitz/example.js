@@ -2,19 +2,11 @@
 
 import { in_circle, make_segment, near_line, rect } from "../../dist/2d/shapes.js";
 import { unit_vec_deg, vec2 } from "../../dist/2d/vector.js";
-import { Interactive, ViewPort2D } from "../../dist/2d/view.js";
+import { Interactive, setup_canvas, ViewPort2D } from "../../dist/2d/view.js";
 import { AnimationController, annotate_circle, draw_axes, draw_axis_grid, draw_border, draw_line, draw_line_seg, draw_func, draw_poly, draw_rectangle, draw_v_line, rad_to_deg, with_style } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
-
-// Ensure buffer matches the layed-out size.
-// canvas.style.width = canvas.clientWidth + "px";
-// canvas.style.height = canvas.clientHeight + "px";
-// canvas.width = canvas.clientWidth * 1.5;
-// canvas.height = canvas.clientHeight * 1.5;
-canvas.width = canvas.clientWidth;
-canvas.height = canvas.clientHeight;
 
 /** @type {CanvasRenderingContext2D} */
 let ctx = canvas.getContext("2d");
@@ -22,9 +14,11 @@ let ctx = canvas.getContext("2d");
 /** @type {HTMLInputElement} */
 let slider = document.getElementById("theSlider");
 
+const [w, h] = setup_canvas(ctx);
+
 // The viewport to the canvas.
 const cpad = 20;
-const crect = rect([cpad, canvas.width - cpad], [cpad, canvas.height - cpad]);
+const crect = rect([cpad, w - cpad], [cpad, h - cpad]);
 const xmax = 2 * crect.width / crect.height;
 const xrect = rect([0, xmax], [-1, 1]);
 let view_main = new ViewPort2D(ctx, xrect, crect);
@@ -55,7 +49,7 @@ const xval_int = interact.registerDraggable(
 
 
 function draw(anim) {
-    view_main.ctx.clearRect(0, 0, view_main.ctx.canvas.width, view_main.ctx.canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const lval = Number(slider.value); // Lipschitz constant.
     const xyval = vec2(xval, theFunc(xval));

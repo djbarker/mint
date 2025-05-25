@@ -4,8 +4,49 @@ import { deg_to_rad } from "../utils.js";
 import { in_rect, Rectangle } from "./shapes.js";
 import { div, mul, sub, unit_vec_deg, vec2, Vect2D } from "./vector.js";
 
+
+/**
+ * Make the canvas' image width & height match the layed-out size, and handle HiDPI monitors.
+ * 
+ * Use the output of this function for sizing your {@link ViewPort2D}s.
+ * 
+ * Note: Not idempotent. Only call this function once!
+ * 
+ * @param canvas 
+ * @returns The canvas width & height in logical (CSS) pixels.
+ */
+export function setup_canvas(ctx: CanvasRenderingContext2D): [number, number] {
+    const pixelRatio = window.devicePixelRatio || 1;
+    const w = ctx.canvas.clientWidth;
+    const h = ctx.canvas.clientHeight;
+    ctx.canvas.style.width = w + "px"; // Logical pixels.
+    ctx.canvas.style.height = h + "px"; // Logical pixels.
+    ctx.canvas.width = w * pixelRatio; // Physical pixels.
+    ctx.canvas.height = h * pixelRatio; // Physical pixels.
+    ctx.scale(pixelRatio, pixelRatio);
+    return [w, h];
+}
+
+/**
+ * Return the size of the canvas in logical (CSS) pixels.
+ * 
+ * @param canvas 
+ * @returns 
+ */
+export function get_logical_size(canvas: HTMLCanvasElement): [number, number] {
+    const pixelRatio = window.devicePixelRatio || 1;
+    const w = canvas.width / pixelRatio;
+    const h = canvas.height / pixelRatio;
+    return [w, h];
+}
+
 /**
  * Convert our data space into canvas locations.
+ * 
+ * Note: The canvas locations are in CSS logical pixels.
+ *       On HiDPI monitors this wont match the physical pixels.
+ *       For this reason use do not use `clientWidth`, `clientHeight`, `width` or `height` (physical pixels).
+ *       Instead use `canvas.style.width` & `canvas.style.height`.
  */
 export class ViewPort2D {
     ctx: CanvasRenderingContext2D;
@@ -27,9 +68,10 @@ export class ViewPort2D {
         if (canvas != null) {
             this.canvas = canvas;
         } else {
+            const [w, h] = get_logical_size(ctx.canvas);
             this.canvas = new Rectangle(
                 vec2(0, 0),
-                vec2(ctx.canvas.width, ctx.canvas.height),
+                vec2(w, h),
             );
         }
 
@@ -44,7 +86,7 @@ export class ViewPort2D {
     /** The canvas has its origin at the top-left. */
     _flip_y = (y: number) => {
         // Important: full canvas height, not viewport.
-        return this.ctx.canvas.height - y;
+        return this.ctx.canvas.clientHeight - y;
     }
 
     /**

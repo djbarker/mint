@@ -22,7 +22,7 @@ function _draw(view: ViewPort2D, style: StyleT, draw: () => void) {
 
 /** This is just a suggestion. */
 export function annotation_size(canvas: HTMLCanvasElement): number {
-    return Math.max(Math.min(canvas.width, canvas.height) / 60, 10);
+    return Math.max(Math.min(canvas.clientWidth, canvas.clientHeight) / 60, 10);
 }
 
 
