@@ -1,16 +1,14 @@
 // @ts-check
 
-import { vec2, dot, draw_circle, in_circle, draw_line_seg, Interactive, wrap, style_default, ViewPort2D, rescale_vec, draw_poly, draw_arc, rotate_cw_deg, near_ray, unit_vec_deg, annotate_text, expand_vec, Rectangle, draw_vector, draw_line, draw_axes, draw_axis_grid, rect, annotate_ticks, draw_right_angle_vecs, } from "../../dist/mint.js";
+import { vec2, dot, draw_circle, in_circle, draw_line_seg, Interactive, wrap, style_default, ViewPort2D, rescale_vec, draw_poly, draw_arc, rotate_cw_deg, near_ray, unit_vec_deg, annotate_text, expand_vec, Rectangle, draw_vector, draw_line, draw_axes, draw_axis_grid, rect, annotate_ticks, draw_right_angle_vecs, setup_canvas, } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
 
-// Ensure buffer matches the layed-out size.
-canvas.width = canvas.clientWidth;
-canvas.height = canvas.clientHeight;
-
 /** @type {CanvasRenderingContext2D} */
 let ctx = canvas.getContext("2d");
+
+setup_canvas(ctx);
 
 // The viewport to the canvas.
 let view = new ViewPort2D(
