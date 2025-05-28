@@ -97,6 +97,12 @@ function draw(anim) {
     draw_h_line(view_hzd, 1, { linecolor: "#444444" });
 
     view_pop.with_clip(() => {
+
+        const poly = indices(age).map(i => vec2(age[i], pop[i]));
+        poly.push(vec2(amax, 0));
+        poly.push(vec2(0, 0));
+        draw_poly(view_pop, poly, { "fillcolor": "rgba(41, 124, 179, 0.2)" })
+
         const cumhzd = cumprod(age.map(hazard).map((v) => 1 - v)).map((v) => 1 - v);
         draw_plot(view_hzd, age, cumhzd, { linecolor: "coral", linewidth: 2, linestyle: "dotted" });
         draw_plot(view_brt, age, cumsum(age.map(birth)), { linecolor: "limegreen", linewidth: 2, linestyle: "dashed" });
@@ -115,7 +121,14 @@ function draw(anim) {
     view_tot.with_clip(() => {
         draw_rectangle(view_tot, view_tot.data, { fillcolor: "white" });
         draw_axis_grid(view_tot, 50, 30, { linecolor: "#DDDDDD" });
-        draw_plot(view_tot, arange(years - tot.length, years, 1), tot, { linecolor: "darkviolet", linewidth: 2 });
+
+        const yrs = arange(years - tot.length, years, 1);
+        const poly = indices(yrs).map(i => vec2(yrs[i], tot[i]));
+        poly.push(vec2(years, 0));
+        poly.push(vec2(years - tot.length, 0));
+        draw_poly(view_tot, poly, { "fillcolor": "rgba(128, 41, 179, 0.2)" })
+
+        draw_plot(view_tot, yrs, tot, { linecolor: "darkviolet", linewidth: 2 });
     })
     draw_rectangle(view_tot, view_tot.data, { linecolor: "black" });
     annotate_text(view_tot, "Total Population", view_tot.data.center.map_y((y) => y * 1.9), ".-", 0, { fillcolor: "darkviolet", linecolor: "white", linewidth: 3 });
