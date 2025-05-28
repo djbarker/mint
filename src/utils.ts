@@ -19,6 +19,22 @@ export function rad_to_deg(angle: number): number {
 }
 
 /**
+ * Get the indices of an array.
+ * 
+ * Useful in combination with `.forEach` or `.map`.
+ * 
+ * @param arr 
+ * @returns 
+ */
+export function indices<T>(arr: T[]): number[] {
+    const idx = Array(arr.length);
+    for (let i = 0; i < arr.length; i++) {
+        idx[i] = i;
+    }
+    return idx;
+}
+
+/**
  * Get an array of evenly spaced values with the given start, stop & step.
  * 
  * @param start 
