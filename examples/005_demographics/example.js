@@ -2,7 +2,8 @@
 
 import { rect } from "../../dist/2d/shapes.js";
 import { Interactive, ViewPort2D } from "../../dist/2d/view.js";
-import { AnimationController, annotate_labeled_ticks, annotate_text, arange, clip, cumprod, cumsum, draw_axes, draw_axis_grid, draw_func, draw_h_line, draw_plot, draw_rectangle, stroke_default, sum, vec2 } from "../../dist/mint.js";
+import { AnimationController } from "../../dist/anim.js";
+import { annotate_labeled_ticks, annotate_text, arange, Clip, Composite, Constant, cumprod, cumsum, draw_axes, draw_axis_grid, draw_func, draw_h_line, draw_plot, draw_poly, draw_rectangle, EaseInOut, indices, LoopN, Rescale, stroke_default, sum, Tween, vec2 } from "../../dist/mint.js";
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("theCanvas");
@@ -59,6 +60,18 @@ function birth(age) {
     return l * Number(endogSlider.value);
 }
 
+const ex = 1.0;
+/** @type { import("../../dist/anim.js").Animation | null } */
+let exogAnim = new LoopN(
+    new Composite([
+        new EaseInOut(new Rescale(new Tween(0, ex), 3)),
+        new Clip(new Constant(ex), [0, 2]),
+        new EaseInOut(new Rescale(new Tween(ex, 0), 3)),
+        new Clip(new Constant(0), [0, 12]),
+    ]),
+    10,
+);
+
 /** 
  * @param {AnimationController} anim
  */
@@ -66,6 +79,11 @@ function draw(anim) {
 
     const fps = 40;
     if (anim.total_elapsed_sec > 1 / fps) {
+
+        if (exogAnim && years < exogAnim.duration) {
+            exogSlider.value = exogAnim.valueAt(years);
+        }
+
         anim.rezero();
         let rate = 0.0;
         for (let i = xmax; i > 0; i--) {
@@ -137,5 +155,9 @@ function draw(anim) {
 
 const anim = new AnimationController()
 anim.start(draw);
+
+exogSlider.addEventListener("mousedown", (e) => {
+    exogAnim = null;
+})
 
 
