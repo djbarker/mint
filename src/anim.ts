@@ -69,3 +69,190 @@ export class AnimationController {
         };
     }
 }
+
+
+/**
+ * Interface which all animation primatives use.
+ * 
+ * The idea is they are functions parameterized by "time", which can take values between zero and the `duration`.
+ * This may or may not be actual time and you can combine the primatives to build more complex animations & rescale time appropriately.
+ */
+export interface Animation<T> {
+    /**
+     * The max value the time parameter.
+     */
+    duration: number;
+
+    /**
+     * The value associated with the specified time.
+     * @param time 
+     */
+    valueAt(time: number): T;
+}
+
+/**
+ * Always return the same animation.
+ */
+export class Constant<T> {
+    value: T;
+
+    constructor(value: T) {
+        this.value = value;
+    }
+
+    duration: number = Number.POSITIVE_INFINITY;
+
+    valueAt(time: number): T {
+        return this.value;
+    }
+}
+
+/**
+ * Rescale the time range of the given animation.
+ */
+export class Rescale<T> {
+    anim: Animation<T>;
+    duration: number;
+
+    constructor(anim: Animation<T>, duration: number) {
+        this.anim = anim;
+        this.duration = duration;
+    }
+
+    valueAt(time: number): T {
+        return this.anim.valueAt((time / this.duration) * this.anim.duration);
+    }
+}
+
+/**
+ * Clip the time range of another animation to a sub-interval.
+ */
+export class Clip<T> {
+    anim: Animation<T>;
+    range: [number, number];
+    duration: number;
+
+    constructor(anim: Animation<T>, range: [number, number]) {
+        this.anim = anim;
+        this.range = range;
+        this.duration = (range[1] - range[0]);
+    }
+
+    valueAt(time: number): T {
+        time = Math.min(Math.max(time, this.range[0]), this.range[1]);
+        return this.anim.valueAt(time);
+    }
+}
+
+/**
+ * Repeat the given animation infinitely.
+ */
+export class LoopInf<T> {
+    anim: Animation<T>;
+    duration: number = Number.POSITIVE_INFINITY;
+
+    constructor(anim: Animation<T>) {
+        this.anim = anim;
+    }
+
+    valueAt(time: number): T {
+        time = (time % this.duration);
+        return this.anim.valueAt(time);
+    }
+}
+
+/**
+ * Repeat the given animation N times.
+ * 
+ * After the Nth time returns the final state.
+ */
+export class LoopN<T> {
+    anim: Animation<T>;
+    count: number;
+    duration: number;
+
+    constructor(anim: Animation<T>, count: number) {
+        this.anim = anim;
+        this.count = count;
+        this.duration = count * anim.duration;
+    }
+
+    valueAt(time: number): T {
+        if (time >= this.duration) {
+            time = this.anim.duration;
+        } else {
+            time = time % this.anim.duration;
+        }
+        return this.anim.valueAt(time);
+    }
+}
+
+/**
+ * Combine multiple animations together.
+ */
+export class Composite<T> {
+    anims: Animation<T>[];
+    starts: number[];
+
+    duration: number;
+
+    constructor(anims: Animation<T>[]) {
+        this.anims = anims;
+
+        this.duration = 0;
+        this.starts = Array(anims.length);
+        for (let i = 0; i < anims.length; i++) {
+            this.starts[i] = this.duration;
+            this.duration += anims[i].duration;
+        }
+    }
+
+    valueAt(time: number): T {
+        // Implicitly has time after all anims => last value;
+        for (let i = this.anims.length - 1; i >= 0; i--) {
+            if (this.starts[i] < time) {
+                return this.anims[i].valueAt(time - this.starts[i]);
+            }
+        }
+        // Time was not after any start => first value.
+        return this.anims[0].valueAt(0);
+    }
+}
+
+/**
+ * Linearly move between two values over a duration of 1.
+ */
+export class Tween {
+    duration: number = 1;
+    value1: number;
+    value2: number;
+
+    constructor(value1: number, value2: number) {
+        this.value1 = value1;
+        this.value2 = value2;
+    }
+
+    valueAt(time: number) {
+        return this.value1 * (1 - time) + this.value2 * time;
+    }
+}
+
+/**
+ * Apply easing to the time parameter at the start _and_ at the end.
+ */
+export class EaseInOut<T> {
+    anim: Animation<T>;
+    duration: number;
+
+    constructor(anim: Animation<T>) {
+        this.anim = anim;
+        this.duration = anim.duration;
+    }
+
+    valueAt(time: number): T {
+        time = time / this.anim.duration; // to frac
+        time = (time < 0.5) ? 2 * time * time : 1 - 2 * (1 - time) * (1 - time);
+        time = time * this.anim.duration; // to time
+        return this.anim.valueAt(time);
+    }
+}
