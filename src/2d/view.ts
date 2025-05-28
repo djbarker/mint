@@ -24,6 +24,7 @@ export function setup_canvas(ctx: CanvasRenderingContext2D): [number, number] {
     ctx.canvas.width = w * pixelRatio; // Physical pixels.
     ctx.canvas.height = h * pixelRatio; // Physical pixels.
     ctx.scale(pixelRatio, pixelRatio);
+    style_default(ctx);
     return [w, h];
 }
 
