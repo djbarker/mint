@@ -26,8 +26,9 @@ let hazardSlider = document.getElementById("hazardRateSlider");
 // The viewport to the canvas.
 const cpad = 50;
 const crect = rect([cpad, canvas.width - cpad], [cpad, canvas.height - cpad]);
-const xmax = 120;
-const xrng = [0, xmax];
+const xmax = 180;
+const amax = 120;
+const xrng = [0, amax];
 let view_pop = new ViewPort2D(ctx, rect(xrng, [0, 3.6]), crect);
 let view_hzd = new ViewPort2D(ctx, rect(xrng, [0, 1.2]), crect);
 let view_brt = new ViewPort2D(ctx, rect(xrng, [0, 1.2]), crect);
@@ -35,7 +36,7 @@ let view_brt = new ViewPort2D(ctx, rect(xrng, [0, 1.2]), crect);
 let years = 0;
 
 const pop = Array(xmax + 1).fill(0);
-const age = arange(0, xmax, 1.0);
+const age = arange(0, amax + amax / xmax, amax / xmax);
 const tot = Array(500).fill(0);
 
 function hazard(age) {
@@ -67,9 +68,9 @@ function draw(anim) {
     if (anim.total_elapsed_sec > 1 / fps) {
         anim.rezero();
         let rate = 0.0;
-        for (let i = xmax - 1; i > 0; i--) {
-            rate += pop[i] * birth(i);
-            pop[i] = pop[i - 1] * (1 - hazard(i));
+        for (let i = xmax; i > 0; i--) {
+            rate += pop[i] * birth(age[i]);
+            pop[i] = pop[i - 1] * (1 - hazard(age[i]));
         }
         pop[0] = Number(exogSlider.value) + rate;
         // Really dumb but it's fast enough.
@@ -77,8 +78,8 @@ function draw(anim) {
             tot[i] = tot[i + 1];
         }
         tot[tot.length - 1] = sum(pop);
-        years += 1;
-        years = years % 200
+        years += (amax / xmax);
+        // years = years % (exog_anim.duration);
     }
 
 
@@ -99,7 +100,7 @@ function draw(anim) {
         const cumhzd = cumprod(age.map(hazard).map((v) => 1 - v)).map((v) => 1 - v);
         draw_plot(view_hzd, age, cumhzd, { linecolor: "coral", linewidth: 2, linestyle: "dotted" });
         draw_plot(view_brt, age, cumsum(age.map(birth)), { linecolor: "limegreen", linewidth: 2, linestyle: "dashed" });
-        draw_func(view_brt, [0, xmax], 0.1, birth, { linecolor: "limegreen", linewidth: 2 });
+        draw_func(view_brt, [0, xmax], 0.1, (a) => birth(a) / (amax / xmax), { linecolor: "limegreen", linewidth: 2 });
         draw_func(view_hzd, [0, xmax], 0.1, hazard, { linecolor: "coral", linewidth: 2 });
         draw_plot(view_pop, age, pop, { linecolor: "steelblue", linewidth: 2 });
     });
