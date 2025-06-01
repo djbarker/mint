@@ -2,17 +2,36 @@
  * Simple control of starting & stopping animation rendering.
  * 
  * We can manually build up animations with by calling {@link requestAnimationFrame}, 
- * but we must take care around exactly when we request new frames to avoid spamming requests.
- * This class handles that and is soley responsible for requesting new frames.
+ * but we must take care around exactly when we request new frames to avoid spamming requests,
+ * or performing superfluous work if the canvas is off-screen.
+ * This class handles that is responsible for requesting new frames at the approriate times.
  * 
  * The "draw" callback receives an extra first parameter over {@link requestAnimationFrame}, which is this controller.
  * If desired the callback can use this to stop the animation itself, based on some criterion.
  */
 export class AnimationController {
+    canvas: HTMLCanvasElement;
+    _draw: (anim: AnimationController | null) => void;
+
     request_id: number | undefined = undefined;
     last_time: number = 0;
     zero_time: number = 0;
     frame_elapsed_sec: number = 0;
+
+    constructor(canvas: HTMLCanvasElement, draw: (anim: AnimationController | null) => void) {
+        this.canvas = canvas;
+        this._draw = draw;
+
+        window.onscroll = (e) => {
+            const above = this.canvas.scrollTop + this.canvas.height < window.scrollY;
+            const below = this.canvas.scrollTop > window.scrollY + window.screenTop;
+            if (above || below) {
+                this.stop();
+            } else {
+                this.start();
+            }
+        };
+    }
 
     /** Reset the zero time to be now. */
     rezero() {
@@ -25,16 +44,25 @@ export class AnimationController {
     }
 
     /**
-     * Start animating with the given draw callback function.
+     * Draw a single frame. 
+     * 
+     * Note: Does not receive the {@link AnimationController} as an argument, rather `null`.
+     */
+    draw() {
+        this._draw(null);
+    }
+
+    /**
+     * Start animating.
      * 
      * Note: Calling start, with two different callbacks, without first calling stop, 
      *       will result in only the first being called.
      * 
      * Note: Idempotent.
      */
-    start(draw: (anim: AnimationController) => void) {
+    start() {
         if (!this.request_id) {
-            this.request_id = requestAnimationFrame(this.callback(draw));
+            this.request_id = requestAnimationFrame(this.make_callback());
         }
     }
 
@@ -51,17 +79,18 @@ export class AnimationController {
     }
 
     /** If somehow we end up with multiple callbacks, dedupe them. */
-    callback(draw: (anim: AnimationController) => void) {
+    make_callback() {
         return (last_time: number) => {
-            if ((last_time == this.last_time) || !this.request_id) {
+            // Already requested a frame, so do not request another.
+            if (!this.request_id) {
                 return;
             }
 
             this.frame_elapsed_sec = (last_time - this.last_time) / 1000.0;
             this.last_time = last_time;
-            draw(this);
+            this._draw(this);
             if (this.request_id) {
-                this.request_id = requestAnimationFrame(this.callback(draw))
+                this.request_id = requestAnimationFrame(this.make_callback())
             } else {
                 // The last request was cancelled during draw(...), so we don't schedule another. 
                 // Pass!
