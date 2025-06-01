@@ -4,27 +4,30 @@
  * We can manually build up animations with by calling {@link requestAnimationFrame}, 
  * but we must take care around exactly when we request new frames to avoid spamming requests,
  * or performing superfluous work if the canvas is off-screen.
- * This class handles that is responsible for requesting new frames at the approriate times.
+ * This class handles that; it is responsible for requesting new frames at the approriate times.
  * 
  * The "draw" callback receives an extra first parameter over {@link requestAnimationFrame}, which is this controller.
  * If desired the callback can use this to stop the animation itself, based on some criterion.
+ * 
+ * Note: Since this is requesting the animation it also clears the canvas before calling `draw`.
  */
 export class AnimationController {
-    canvas: HTMLCanvasElement;
-    _draw: (anim: AnimationController | null) => void;
+    ctx: CanvasRenderingContext2D;
+    _draw: (anim: AnimationController) => void;
 
     request_id: number | undefined = undefined;
     last_time: number = 0;
     zero_time: number = 0;
     frame_elapsed_sec: number = 0;
 
-    constructor(canvas: HTMLCanvasElement, draw: (anim: AnimationController | null) => void) {
-        this.canvas = canvas;
+    constructor(ctx: CanvasRenderingContext2D, draw: (anim: AnimationController) => void) {
+        this.ctx = ctx;
         this._draw = draw;
 
+        // Stop animating if we scroll the canvas offscreen.
         window.onscroll = (e) => {
-            const above = this.canvas.scrollTop + this.canvas.height < window.scrollY;
-            const below = this.canvas.scrollTop > window.scrollY + window.screenTop;
+            const above = this.ctx.canvas.scrollTop + this.ctx.canvas.height < window.scrollY;
+            const below = this.ctx.canvas.scrollTop > window.scrollY + window.screenTop;
             if (above || below) {
                 this.stop();
             } else {
@@ -41,15 +44,6 @@ export class AnimationController {
 
     get total_elapsed_sec(): number {
         return (this.last_time - this.zero_time) / 1000.0;
-    }
-
-    /**
-     * Draw a single frame. 
-     * 
-     * Note: Does not receive the {@link AnimationController} as an argument, rather `null`.
-     */
-    draw() {
-        this._draw(null);
     }
 
     /**
@@ -88,6 +82,7 @@ export class AnimationController {
 
             this.frame_elapsed_sec = (last_time - this.last_time) / 1000.0;
             this.last_time = last_time;
+            this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
             this._draw(this);
             if (this.request_id) {
                 this.request_id = requestAnimationFrame(this.make_callback())
