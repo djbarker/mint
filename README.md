@@ -10,7 +10,7 @@ To build locally, run the following commands
 git clone git@github.com:djbarker/mint.git
 cd mint/
 npm install typescript
-make lib
+make
 ```
 
 This will place the relevant files under the `dist/` directory.
