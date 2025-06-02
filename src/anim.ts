@@ -26,8 +26,9 @@ export class AnimationController {
 
         // Stop animating if we scroll the canvas offscreen.
         window.onscroll = (e) => {
-            const above = this.ctx.canvas.scrollTop + this.ctx.canvas.height < window.scrollY;
-            const below = this.ctx.canvas.scrollTop > window.scrollY + window.screenTop;
+            const rect = this.ctx.canvas.getBoundingClientRect();
+            const above = rect.bottom < 0;
+            const below = rect.top > window.innerHeight;
             if (above || below) {
                 this.stop();
             } else {
