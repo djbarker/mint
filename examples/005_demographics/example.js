@@ -33,9 +33,10 @@ let view_hzd = new ViewPort2D(ctx, rect(xrng, [0, 1.2]), crect);
 let view_brt = new ViewPort2D(ctx, rect(xrng, [0, 1.2]), crect);
 
 let years = 0;
+let years_per_iter = amax / xmax;
 
 const pop = Array(xmax + 1).fill(0);
-const age = arange(0, amax + amax / xmax, amax / xmax);
+const age = arange(0, amax + years_per_iter, years_per_iter);
 const tot = Array(500).fill(0);
 
 function hazard(age) {
@@ -75,6 +76,10 @@ let exogAnim = new LoopN(
  */
 function draw(anim) {
 
+    // --------------------------------
+    // The Simulation 
+    // --------------------------------
+
     const fps = 40;
     if (anim.total_elapsed_sec > 1 / fps) {
 
@@ -89,17 +94,25 @@ function draw(anim) {
             pop[i] = pop[i - 1] * (1 - hazard(age[i]));
         }
         pop[0] = Number(exogSlider.value) + rate;
+
         // Really dumb but it's fast enough.
         for (let i = 0; i < tot.length - 1; i++) {
             tot[i] = tot[i + 1];
         }
         tot[tot.length - 1] = sum(pop);
+
         years += (amax / xmax);
     }
 
+    // --------------------------------
+    // The Plots 
+    // --------------------------------
 
     const ytop = canvas.height - 1.2 * cpad;
-    let view_tot = new ViewPort2D(ctx, rect([years - tot.length, years - 1], [0, 300]), rect([1.2 * cpad, 1.2 * cpad + 200], [ytop - 100, ytop]))
+    const view_tot = new ViewPort2D(ctx,
+        rect([years - tot.length * years_per_iter, years - years_per_iter], [0, 300]),
+        rect([1.2 * cpad, 1.2 * cpad + 200], [ytop - 100, ytop])
+    );
 
     draw_axis_grid(view_pop, 2, 0.2, { linecolor: "#DDDDDD" })
     const xticks = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120];
@@ -132,12 +145,12 @@ function draw(anim) {
 
     view_tot.with_clip(() => {
         draw_rectangle(view_tot, view_tot.data, { fillcolor: "white" });
-        draw_axis_grid(view_tot, 50, 30, { linecolor: "#DDDDDD" });
+        draw_axis_grid(view_tot, 25, 30, { linecolor: "#DDDDDD" });
 
-        const yrs = arange(years - tot.length, years, 1);
+        const yrs = arange(years - tot.length * years_per_iter, years, years_per_iter);
         const poly = indices(yrs).map(i => vec2(yrs[i], tot[i]));
         poly.push(vec2(years, 0));
-        poly.push(vec2(years - tot.length, 0));
+        poly.push(vec2(years - tot.length * years_per_iter, 0));
         draw_poly(view_tot, poly, { "fillcolor": "rgba(128, 41, 179, 0.2)" })
 
         draw_plot(view_tot, yrs, tot, { linecolor: "darkviolet", linewidth: 2 });
@@ -147,11 +160,17 @@ function draw(anim) {
     // annotate_text(view_tot, "Time", view_tot.data.center.map_y((y) => -y * 0.1), ".-", 0, { fillcolor: "black", linecolor: "white", linewidth: 3 });
 }
 
+
+// We animate the exogenous birth rate at the beginning.
+// If the user clicks the slider, let them control it rather than hijacking their input.
+exogSlider.addEventListener("mousedown", (e) => {
+    exogAnim = null;
+}, { once: true })
+
+
+// Start the simulation/plotting loop.
 const anim = new AnimationController(ctx, draw)
 anim.start();
 
-exogSlider.addEventListener("mousedown", (e) => {
-    exogAnim = null;
-})
 
 
